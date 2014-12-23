@@ -16,13 +16,12 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.debug.ui,
  org.eclipse.ui.workbench,
  org.eclipse.ui.ide,
- org.eclipse.swt,
- org.eclipse.ui.navigator
+ org.eclipse.ui.navigator,
+ org.eclipse.remote.ui;bundle-version="[1.1.0,2.0.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Bundle-Localization: plugin
-Export-Package: org.eclipse.launchbar.ui,
- org.eclipse.launchbar.ui.internal;x-internal:=true,
+Export-Package: org.eclipse.launchbar.ui.internal;x-internal:=true,
  org.eclipse.launchbar.ui.internal.commands;x-internal:=true,
  org.eclipse.launchbar.ui.internal.controls;x-internal:=true,
  org.eclipse.launchbar.ui.internal.dialogs;x-internal:=true

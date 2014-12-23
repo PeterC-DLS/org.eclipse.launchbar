@@ -26,19 +26,11 @@ public interface IRemoteConnectionWorkingCopy extends IRemoteConnection {
 	public boolean isDirty();
 
 	/**
-	 * Saves this working copy to its original connection and returns a handle to the resulting connection. Has no effect if this
-	 * connection does not need saving.
+	 * Set the name for this connection
 	 * 
-	 * @return saved connection
+	 * @param name
 	 */
-	public IRemoteConnection save();
-
-	/**
-	 * Set the address for this connection
-	 * 
-	 * @param address
-	 */
-	public void setAddress(String address);
+	public void setName(String name);
 
 	/**
 	 * Set an implementation dependent attribute for the connection. Attributes keys supported by the connection can be obtained
@@ -53,33 +45,11 @@ public interface IRemoteConnectionWorkingCopy extends IRemoteConnection {
 	public void setAttribute(String key, String value);
 
 	/**
-	 * Set the name for this connection
+	 * Saves this working copy to its original connection and returns a handle to the resulting connection. Has no effect if this
+	 * connection does not need saving.
 	 * 
-	 * @param name
+	 * @return saved connection
 	 */
-	public void setName(String name);
+	public IRemoteConnection save();
 
-	/**
-	 * Set the password for this connection
-	 * 
-	 * @param password
-	 * @since 5.0
-	 */
-	public void setPassword(String password);
-
-	/**
-	 * Set the port used for this connection. Only valid if supported by the underlying service provider.
-	 * 
-	 * @param port
-	 *            port number for the connection
-	 * @since 5.0
-	 */
-	public void setPort(int port);
-
-	/**
-	 * Set the username for this connection
-	 * 
-	 * @param username
-	 */
-	public void setUsername(String username);
 }

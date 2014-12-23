@@ -8,14 +8,14 @@
  * Contributors:
  *     Doug Schaefer
  *******************************************************************************/
-package org.eclipse.launchbar.ui.internal.targetsView;
+package org.eclipse.remote.ui.internal.views;
 
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.window.SameShellProvider;
 import org.eclipse.ui.dialogs.PropertyDialogAction;
 import org.eclipse.ui.navigator.CommonActionProvider;
 
-public class LaunchTargetsActionProvider extends CommonActionProvider {
+public class RemoteConnectionsActionProvider extends CommonActionProvider {
 
 	@Override
 	public void fillContextMenu(IMenuManager menu) {

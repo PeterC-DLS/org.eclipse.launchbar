@@ -16,19 +16,27 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.launchbar.core.ILaunchBarManager;
+import org.eclipse.remote.core.api2.IRemoteManager;
+import org.eclipse.remote.core.internal.api2.proxy.RemoteManager;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 public class Activator extends Plugin {
 
 	public static final String PLUGIN_ID = "org.eclipse.launchbar.core";
 	private static Activator plugin;
 	private LaunchBarManager launchBarManager;
+	private IRemoteManager remoteManager;
 
 	public void start(BundleContext bundleContext) throws Exception {
 		super.start(bundleContext);
 		plugin = this;
+
 		launchBarManager = new LaunchBarManager();
 		bundleContext.registerService(ILaunchBarManager.class, launchBarManager, null);
+
+		remoteManager = new RemoteManager();
+		bundleContext.registerService(IRemoteManager.class, remoteManager, null);
 	}
 
 	public void stop(BundleContext bundleContext) throws Exception {
@@ -36,14 +44,11 @@ public class Activator extends Plugin {
 		plugin = null;
 		launchBarManager.dispose();
 		launchBarManager = null;
+		remoteManager = null;
 	}
 
 	public static Activator getDefault() {
 		return plugin;
-	}
-
-	public LaunchBarManager getLaunchBarManager() {
-		return launchBarManager;
 	}
 
 	public static void throwCoreException(Exception e) throws CoreException {
@@ -68,4 +73,11 @@ public class Activator extends Plugin {
 		if (plugin == null || (plugin.isDebugging() && "true".equalsIgnoreCase(Platform.getDebugOption(DEBUG_ONE))))
 			System.out.println("launchbar: " + str);
 	}
+	
+	public static <T> T getService(Class<T> service) {
+		BundleContext context = plugin.getBundle().getBundleContext();
+		ServiceReference<T> ref = context.getServiceReference(service);
+		return ref != null ? context.getService(ref) : null;
+	}
+
 }

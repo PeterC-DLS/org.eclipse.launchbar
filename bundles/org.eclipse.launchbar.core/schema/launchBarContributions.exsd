@@ -19,7 +19,6 @@
       <complexType>
          <sequence minOccurs="0" maxOccurs="unbounded">
             <element ref="descriptorType"/>
-            <element ref="targetType"/>
             <element ref="configType"/>
             <element ref="configProvider"/>
             <element ref="objectProvider"/>
@@ -86,33 +85,6 @@
       </complexType>
    </element>
 
-   <element name="targetType">
-      <annotation>
-         <documentation>
-            A target is the machine you launch on. Typical examples include the local machine we are running on, or remote embedded or server targets.
-         </documentation>
-      </annotation>
-      <complexType>
-         <attribute name="id" type="string" use="required">
-            <annotation>
-               <documentation>
-                  
-               </documentation>
-            </annotation>
-         </attribute>
-         <attribute name="class" type="string" use="required">
-            <annotation>
-               <documentation>
-                  
-               </documentation>
-               <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.eclipse.launchbar.core.ILaunchTargetType"/>
-               </appinfo>
-            </annotation>
-         </attribute>
-      </complexType>
-   </element>
-
    <element name="configType">
       <annotation>
          <documentation>
@@ -136,7 +108,7 @@
                   
                </documentation>
                <appinfo>
-                  <meta.attribute kind="identifier" basedOn="org.eclipse.launchbar.core.launchBarContributions/targetType/@id"/>
+                  <meta.attribute kind="identifier" basedOn="org.eclipse.remote.core.remoteServices/remoteServices/@id"/>
                </appinfo>
             </annotation>
          </attribute>
@@ -213,7 +185,7 @@
                   
                </documentation>
                <appinfo>
-                  <meta.attribute kind="identifier" basedOn="org.eclipse.launchbar.core.launchBarContributions/targetType/@id"/>
+                  <meta.attribute kind="identifier" basedOn="org.eclipse.remote.core.remoteServices/remoteServices/@id"/>
                </appinfo>
             </annotation>
          </attribute>

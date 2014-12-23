@@ -11,6 +11,7 @@
 package org.eclipse.remote.core.api2;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.remote.core.internal.api2.proxy.RemoteServices;
 
 /**
  * Abstraction of a remote services provider. Clients obtain this interface using one of the static methods in
@@ -31,13 +32,6 @@ public interface IRemoteServices extends IRemoteServicesDescriptor {
 	 * @return the service
 	 */
 	public <T extends IRemoteService> T getService(Class<T> service);
-
-	/**
-	 * Get a connection manager for managing remote connections.
-	 * 
-	 * @return connection manager or null if services are not initialized
-	 */
-	public IRemoteConnectionManager getConnectionManager();
 
 	/**
 	 * Initialize the remote service. Clients should not call this method (it is called internally.)

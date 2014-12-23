@@ -40,12 +40,7 @@ import org.eclipse.launchbar.core.ILaunchBarManager;
 import org.eclipse.launchbar.core.ILaunchDescriptor;
 import org.eclipse.launchbar.core.ILaunchDescriptorType;
 import org.eclipse.launchbar.core.ILaunchObjectProvider;
-import org.eclipse.launchbar.core.ILaunchTarget;
-import org.eclipse.launchbar.core.ILaunchTargetType;
 import org.eclipse.launchbar.core.LaunchConfigurationProvider;
-import org.eclipse.launchbar.core.internal.LaunchBarManager;
-import org.eclipse.launchbar.core.internal.LocalTargetType;
-import org.eclipse.launchbar.core.internal.Pair;
 import org.eclipse.launchbar.core.internal.LaunchBarManager.Listener;
 import org.junit.Test;
 

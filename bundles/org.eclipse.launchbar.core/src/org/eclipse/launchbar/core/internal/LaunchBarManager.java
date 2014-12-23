@@ -27,10 +27,8 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -46,8 +44,11 @@ import org.eclipse.launchbar.core.ILaunchConfigurationProvider;
 import org.eclipse.launchbar.core.ILaunchDescriptor;
 import org.eclipse.launchbar.core.ILaunchDescriptorType;
 import org.eclipse.launchbar.core.ILaunchObjectProvider;
-import org.eclipse.launchbar.core.ILaunchTarget;
-import org.eclipse.launchbar.core.ILaunchTargetType;
+import org.eclipse.remote.core.api2.IRemoteConnection;
+import org.eclipse.remote.core.api2.IRemoteConnectionManager;
+import org.eclipse.remote.core.api2.IRemoteLaunchConfigManagerService;
+import org.eclipse.remote.core.api2.IRemoteManager;
+import org.eclipse.remote.core.api2.IRemoteServices;
 import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
@@ -63,24 +64,6 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 		void activeLaunchTargetChanged();
 		void launchDescriptorRemoved(ILaunchDescriptor descriptor);
 		void launchTargetsChanged();
-	}
-
-	public static class LaunchTargetTypeInfo {
-		private final ILaunchTargetType type;
-		private final String id;
-
-		public LaunchTargetTypeInfo(String id, ILaunchTargetType type) {
-			this.type = type;
-			this.id = id;
-		}
-
-		public String getId() {
-			return id;
-		}
-
-		public ILaunchTargetType getType() {
-			return type;
-		}
 	}
 
 	public static class LaunchDescriptorTypeInfo {
@@ -172,16 +155,12 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 		}
 	}
 
+	private final IRemoteManager remoteManager;
+	
 	private final List<Listener> listeners = new LinkedList<>();
 
 	// The launch object providers
 	private final List<ILaunchObjectProvider> objectProviders = new ArrayList<>();
-
-	// The target types by id - doesn't need to be an executablExtension since it runs right away
-	private final Map<String, ILaunchTargetType> targetTypes = new HashMap<>();
-
-	// The extended info for the target types as specified in the extension
-	private final Map<ILaunchTargetType, LaunchTargetTypeInfo> targetTypeInfo = new HashMap<>();
 
 	// The descriptor types
 	private final Map<String, LaunchDescriptorTypeInfo> descriptorTypes = new HashMap<>();
@@ -213,15 +192,12 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 	// Map of launch objects to launch descriptors
 	private final Map<Object, ILaunchDescriptor> objectDescriptorMap = new HashMap<>();
 
-	// Targets, key is target type id and target name.
-	private final Map<Pair<String, String>, ILaunchTarget> targets = new HashMap<>();
-
 	// The created launch configurations
 	private final Map<ILaunchDescriptor, Map<ILaunchConfigurationProvider, ILaunchConfiguration>> configs = new HashMap<>();
 
 	private ILaunchDescriptor activeLaunchDesc;
 	private ILaunchMode activeLaunchMode;
-	private ILaunchTarget activeLaunchTarget;
+	private IRemoteConnection activeLaunchTarget;
 
 	// The default launch descriptor type used to wrap unclaimed launch configs
 	private DefaultLaunchDescriptorType defaultDescriptorType = new DefaultLaunchDescriptorType();
@@ -232,6 +208,8 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 	private static final String PREF_CONFIG_DESC_ORDER = "configDescList";
 
 	public LaunchBarManager() {
+		remoteManager = Activator.getService(IRemoteManager.class);
+		
 		new Job("Launch Bar Initialization") {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
@@ -318,11 +296,6 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 						}
 						LaunchDescriptorTypeInfo typeInfo = new LaunchDescriptorTypeInfo(id, priority, element);
 						addDescriptorType(typeInfo);
-					} else if (elementName.equals("targetType")) {
-						String id = element.getAttribute("id");
-						ILaunchTargetType targetType = (ILaunchTargetType) element.createExecutableExtension("class");
-						LaunchTargetTypeInfo info = new LaunchTargetTypeInfo(id, targetType);
-						addTargetType(info);
 					} else if (elementName.equals("configProvider")) {
 						String configTypeId = element.getAttribute("launchConfigurationType");
 						LaunchConfigProviderInfo info = new LaunchConfigProviderInfo(configTypeId, element);
@@ -384,22 +357,6 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 		}
 
 		Activator.trace("registered descriptor type " + typeInfo.getId());
-	}
-
-	public void addTargetType(final LaunchTargetTypeInfo info) {
-		targetTypes.put(info.getId(), info.getType());
-		targetTypeInfo.put(info.getType(), info);
-		SafeRunner.run(new ISafeRunnable() {
-			@Override
-			public void run() throws Exception {
-				info.getType().init(LaunchBarManager.this);
-			}
-			@Override
-			public void handleException(Throwable exception) {
-				Activator.trace("target runner init exception " + info.getId());
-			}
-		});
-		Activator.trace("registered target " + info.getId());
 	}
 
 	public void addConfigType(LaunchConfigTypeInfo info, boolean isDefault) {
@@ -485,18 +442,6 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 		return new Pair<String, String>(getDescriptorTypeId(descriptor.getType()), descriptor.getName());
 	}
 
-	public ILaunchTargetType getLaunchTargetType(String id) {
-		return targetTypes.get(id);
-	}
-
-	public String getTargetTypeId(ILaunchTargetType type) {
-		return targetTypeInfo.get(type).getId();		
-	}
-
-	private Pair<String, String> getTargetId(ILaunchTarget target) {
-		return new Pair<String, String>(getTargetTypeId(target.getType()), target.getName());
-	}
-
 	public String toString(Pair<String, String> key) {
 		return key.getFirst() + ":" + key.getSecond();
 	}
@@ -510,30 +455,27 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 		return new Pair<String, String>(key.substring(0, i), key.substring(i + 1));
 	}
 
-	private ILaunchConfigurationProvider getConfigProvider(ILaunchDescriptor descriptor, ILaunchTarget target) throws CoreException {
+	private ILaunchConfigurationProvider getConfigProvider(ILaunchDescriptor descriptor, IRemoteConnection target) throws CoreException {
 		if (descriptor == null) {
 			return null;
 		}
 
 		ILaunchDescriptorType descriptorType = descriptor.getType();
 
-		ILaunchTargetType targetType = null;
+		String targetTypeId;
 		if (target != null) {
-			targetType = target.getType();
+			targetTypeId = target.getRemoteServices().getId();
 		} else {
-			String targetTypeId = defaultTargetTypes.get(getDescriptorTypeId(descriptorType));
-			if (targetTypeId != null) {
-				targetType = targetTypes.get(targetTypeId);
-			}
+			targetTypeId = defaultTargetTypes.get(getDescriptorTypeId(descriptorType));
 		}
 
-		if (targetType == null) {
+		if (targetTypeId == null) {
 			return null;
 		}
 
 		Map<String, LaunchConfigTypeInfo> targetMap = configTypes.get(getDescriptorTypeId(descriptorType));
 		if (targetMap != null) {
-			LaunchConfigTypeInfo typeInfo = targetMap.get(getTargetTypeId(targetType));
+			LaunchConfigTypeInfo typeInfo = targetMap.get(targetTypeId);
 			if (typeInfo != null) {
 				LaunchConfigProviderInfo providerInfo = configProviders.get(typeInfo.getLaunchConfigTypeId());
 				if (providerInfo != null) {
@@ -673,25 +615,15 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 			return;
 		}
 
-		// TODO turning off for now since it's buggy. There is thought though that we may want
-		// to keep the active target when changing descriptors if it's valid for that descriptor.
-		// If we do that, then the active target should be recorded against the target type.
-		// The active target is too random at startup for this to work as coded here.
-//		if (activeLaunchTarget != null && supportsTargetType(activeLaunchDesc, activeLaunchTarget)) {
-//			return; // not changing target
-//		}
-
 		// last stored target from persistent storage
-		String activeTargetId = getPerDescriptorStore().get(PREF_ACTIVE_LAUNCH_TARGET, null);
+		String activeTargetId = getPerDescriptorStore(activeLaunchDesc).get(PREF_ACTIVE_LAUNCH_TARGET, null);
 		if (activeTargetId != null) {
-			ILaunchTarget storedTarget = getLaunchTarget(toId(activeTargetId));
-			if (storedTarget != null && supportsTargetType(activeLaunchDesc, storedTarget)) {
-				setActiveLaunchTarget(storedTarget);
-				return;
-			}
+			IRemoteConnection storedTarget = getLaunchTargetFromId(activeTargetId);
+			setActiveLaunchTarget(storedTarget);
+		} else {
+			// default target for descriptor
+			setActiveLaunchTarget(getDefaultLaunchTarget(activeLaunchDesc));
 		}
-		// default target for descriptor
-		setActiveLaunchTarget(getDefaultLaunchTarget(activeLaunchDesc));
 	}
 
 	private void syncActiveMode() throws CoreException {
@@ -700,7 +632,7 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 			return;
 		}
 		ILaunchMode foundMode = null;
-		String storedModeId = getPerDescriptorStore().get(PREF_ACTIVE_LAUNCH_MODE, null); // last desc mode id
+		String storedModeId = getPerDescriptorStore(activeLaunchDesc).get(PREF_ACTIVE_LAUNCH_MODE, null); // last desc mode id
 		String lastActiveModeId = activeLaunchMode == null ? null : activeLaunchMode.getIdentifier();
 		ILaunchMode[] supportedModes = getLaunchModes(); // this is based on active desc and target which are already set
 		if (supportedModes.length > 0) { // mna, what if no modes are supported?
@@ -746,10 +678,10 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 		}
 	}
 
-	protected Preferences getPerDescriptorStore() {
-		if (activeLaunchDesc == null)
+	protected Preferences getPerDescriptorStore(ILaunchDescriptor descriptor) {
+		if (descriptor == null)
 			return getPreferenceStore();
-		return getPreferenceStore().node(toString(getDescriptorId(activeLaunchDesc)));
+		return getPreferenceStore().node(toString(getDescriptorId(descriptor)));
 	}
 
 	protected IEclipsePreferences getPreferenceStore() {
@@ -791,6 +723,7 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 			throw new IllegalStateException("Mode is not supported by descriptor");
 		// change mode
 		activeLaunchMode = mode;
+
 		// notify listeners
 		for (Listener listener : listeners) {
 			try {
@@ -799,35 +732,34 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 				Activator.log(e);
 			}
 		}
+
 		if (mode == null)
 			return;
+		
 		// store mode
-		setPreference(getPerDescriptorStore(), PREF_ACTIVE_LAUNCH_MODE, mode.getIdentifier()); // per desc store
+		setPreference(getPerDescriptorStore(activeLaunchDesc), PREF_ACTIVE_LAUNCH_MODE, mode.getIdentifier());
 	}
 
-	public ILaunchTarget[] getAllLaunchTargets() {
-		return targets.values().toArray(new ILaunchTarget[targets.size()]);
-	}
-
-	public ILaunchTarget[] getLaunchTargets() throws CoreException {
+	public IRemoteConnection[] getLaunchTargets() throws CoreException {
 		return getLaunchTargets(activeLaunchDesc);
 	}
 
-	public ILaunchTarget[] getLaunchTargets(ILaunchDescriptor descriptor) throws CoreException {
+	public IRemoteConnection[] getLaunchTargets(ILaunchDescriptor descriptor) throws CoreException {
 		if (descriptor == null)
-			return new ILaunchTarget[0];
+			return new IRemoteConnection[0];
 
 		// See if there is are targets registered with this descriptor type
 		Map<String, LaunchConfigTypeInfo> targetMap = configTypes.get(getDescriptorTypeId(descriptor.getType()));
 		if (targetMap != null) {
-			List<ILaunchTarget> targetList = new ArrayList<>();
-			// Not super fast, but we're assuming there aren't many targets.
-			for (Entry<Pair<String, String>, ILaunchTarget> targetEntry : targets.entrySet()) {
-				if (targetMap.containsKey(targetEntry.getKey().getFirst())) {
-					targetList.add(targetEntry.getValue());
+			List<IRemoteConnection> targetList = new ArrayList<>();
+			for (String targetTypeId : targetMap.keySet()) {
+				IRemoteServices type = remoteManager.getRemoteServices(targetTypeId);
+				if (type != null) {
+					IRemoteConnectionManager manager = type.getService(IRemoteConnectionManager.class);
+					targetList.addAll(manager.getConnections());
 				}
 			}
-			return targetList.toArray(new ILaunchTarget[targetList.size()]);
+			return targetList.toArray(new IRemoteConnection[targetList.size()]);
 		}
 
 		// Nope, see if there are any default config targets
@@ -835,58 +767,55 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 		if (config != null) {
 			Set<String> targetTypeIds = defaultConfigTargetTypes.get(config.getType().getIdentifier());
 			if (targetTypeIds != null) {
-				List<ILaunchTarget> targetList = new ArrayList<>();
+				List<IRemoteConnection> targetList = new ArrayList<>();
 				// Not super fast, but we're assuming there aren't many targets.
-				for (Entry<Pair<String, String>, ILaunchTarget> targetEntry : targets.entrySet()) {
-					if (targetTypeIds.contains(targetEntry.getKey().getFirst())) {
-						targetList.add(targetEntry.getValue());
+				for (String targetTypeId : targetTypeIds) {
+					IRemoteServices type = remoteManager.getRemoteServices(targetTypeId);
+					if (type != null) {
+						IRemoteConnectionManager manager = type.getService(IRemoteConnectionManager.class);
+						targetList.addAll(manager.getConnections());
 					}
 				}
-				return targetList.toArray(new ILaunchTarget[targetList.size()]);
+				return targetList.toArray(new IRemoteConnection[targetList.size()]);
 			}
 		}
 
 		// Nope, return the local target
-		for (Entry<Pair<String, String>, ILaunchTarget> targetEntry : targets.entrySet()) {
-			if (LocalTargetType.ID.equals(targetEntry.getKey().getFirst())) {
-				return new ILaunchTarget[] { targetEntry.getValue() };
-			}
-		}
-
-		// Not found, weird
-		return new ILaunchTarget[0];
+		IRemoteConnectionManager manager = remoteManager.getLocalServices().getService(IRemoteConnectionManager.class);
+		return manager.getConnections().toArray(new IRemoteConnection[0]);
 	}
 
-	public ILaunchTarget getActiveLaunchTarget() {
+	public IRemoteConnection getActiveLaunchTarget() {
 		return activeLaunchTarget;
 	}
 
-	public void setActiveLaunchTarget(ILaunchTarget target) throws CoreException {
+	private String getLaunchTargetId(IRemoteConnection connection) {
+		return connection.getRemoteServices().getId() + "|" + connection.getName();
+	}
+	
+	private IRemoteConnection getLaunchTargetFromId(String id) {
+		int i = id.indexOf('|');
+		if (i >= 0) {
+			String typeId = id.substring(0, i);
+			IRemoteServices type = remoteManager.getRemoteServices(typeId);
+			if (type != null) {
+				String name = id.substring(i + 1);
+				IRemoteConnectionManager manager = type.getService(IRemoteConnectionManager.class);
+				return manager.getConnection(name);
+			}
+		}
+		// not found
+		return null;
+	}
+
+	public void setActiveLaunchTarget(IRemoteConnection target) throws CoreException {
 		if (activeLaunchTarget == target) {
 			return;
 		}
 
-		if (activeLaunchTarget != null) {
-			activeLaunchTarget.setActive(false);
-		}
-
 		activeLaunchTarget = target;
-		launchTargetChanged(activeLaunchTarget);
-		if (target == null) {
-			return; // no point storing null, if stored id is invalid it won't be used anyway
-		}
 
-		target.setActive(true);
-		if (activeLaunchDesc == null)
-			return;
-		// per desc store
-		if (supportsTargetType(activeLaunchDesc, target))
-			setPreference(getPerDescriptorStore(),
-					PREF_ACTIVE_LAUNCH_TARGET, toString(getTargetId(target)));
-	}
-
-	@Override
-	public void launchTargetChanged(ILaunchTarget target) {
+		// notify listeners
 		for (Listener listener : listeners) {
 			try {
 				listener.activeLaunchTargetChanged();
@@ -894,57 +823,29 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 				Activator.log(e);
 			}
 		}
+		if (activeLaunchTarget == null) {
+			return;
+		}
+
+		// set the active target as active
+		ILaunchConfiguration launchConfig = getLaunchConfiguration(activeLaunchDesc, activeLaunchTarget);
+		IRemoteLaunchConfigManagerService lcManagerService = remoteManager.getService(IRemoteLaunchConfigManagerService.class);
+		lcManagerService.setActiveRemote(launchConfig, activeLaunchTarget);
+
+		// save the active setting
+		setPreference(getPerDescriptorStore(activeLaunchDesc), PREF_ACTIVE_LAUNCH_TARGET, 
+				getLaunchTargetId(activeLaunchTarget));
 	}
 
-	@Override
-	public void launchTargetAdded(ILaunchTarget target) throws CoreException {
-		targets.put(getTargetId(target), target);
-		for (Listener listener : listeners) {
-			try {
-				listener.launchTargetsChanged();
-			} catch (Exception e) {
-				Activator.log(e);
-			}
-		}
-		if (activeLaunchDesc != null && activeLaunchTarget == null && supportsTargetType(activeLaunchDesc, target)) {
-			setActiveLaunchTarget(target);
-		}
-	}
-
-	@Override
-	public void launchTargetRemoved(ILaunchTarget target) throws CoreException {
-		targets.remove(getTargetId(target));
-		for (Listener listener : listeners) {
-			try {
-				listener.launchTargetsChanged();
-			} catch (Exception e) {
-				Activator.log(e);
-			}
-		}
-		if (activeLaunchTarget == target) {
-			setActiveLaunchTarget(getDefaultLaunchTarget(activeLaunchDesc));
-		}
-	}
-
-	private ILaunchTarget getDefaultLaunchTarget(ILaunchDescriptor descriptor) throws CoreException {
-		ILaunchTarget[] targets = getLaunchTargets(descriptor);
+	private IRemoteConnection getDefaultLaunchTarget(ILaunchDescriptor descriptor) throws CoreException {
+		IRemoteConnection[] targets = getLaunchTargets(descriptor);
 		if (targets.length > 0) {
 			return targets[0];
 		}
 		return null;
 	}
 
-	public ILaunchTarget getLaunchTarget(Pair<String, String> targetId) {
-		if (targetId == null)
-			return null;
-		return targets.get(targetId);
-	}
-
-	public ILaunchTargetType[] getAllLaunchTargetTypes() {
-		return targetTypes.values().toArray(new ILaunchTargetType[targetTypes.values().size()]);
-	}
-
-	public ILaunchConfigurationType getLaunchConfigurationType(ILaunchDescriptor descriptor, ILaunchTarget target) throws CoreException {
+	public ILaunchConfigurationType getLaunchConfigurationType(ILaunchDescriptor descriptor, IRemoteConnection target) throws CoreException {
 		if (descriptor == null)
 			return null;
 
@@ -952,7 +853,7 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 
 		String targetTypeId = null;
 		if (target != null) {
-			targetTypeId = getTargetTypeId(target.getType());
+			targetTypeId = target.getRemoteServices().getId();
 		} else {
 			targetTypeId = defaultTargetTypes.get(getDescriptorTypeId(descriptor.getType()));
 		}
@@ -972,15 +873,11 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 		return null;
 	}
 
-	private boolean supportsTargetType(ILaunchDescriptor descriptor, ILaunchTarget target) throws CoreException {
-		return getConfigProvider(descriptor, target) != null;
-	}
-
 	public ILaunchConfiguration getActiveLaunchConfiguration() throws CoreException {
 		return getLaunchConfiguration(activeLaunchDesc, activeLaunchTarget);
 	}
 
-	public ILaunchConfiguration getLaunchConfiguration(ILaunchDescriptor descriptor, ILaunchTarget target) throws CoreException {
+	public ILaunchConfiguration getLaunchConfiguration(ILaunchDescriptor descriptor, IRemoteConnection target) throws CoreException {
 		if (descriptor == null) {
 			return null;
 		}

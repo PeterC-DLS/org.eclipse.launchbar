@@ -8,18 +8,17 @@
  * Contributors:
  *     Doug Schaefer
  *******************************************************************************/
-package org.eclipse.launchbar.ui.internal.dialogs;
+package org.eclipse.remote.ui.internal.api2.dialogs;
 
 import org.eclipse.jface.wizard.Wizard;
-import org.eclipse.launchbar.ui.internal.LaunchBarUIManager;
 
-public class NewLaunchTargetWizard extends Wizard {
+public class NewRemoteConnectionWizard extends Wizard {
 
-	private final NewLaunchTargetTypePage typePage;
+	private final NewRemoteConnectionTypePage typePage;
 
-	public NewLaunchTargetWizard(LaunchBarUIManager uiManager) {
+	public NewRemoteConnectionWizard() {
 		setWindowTitle("Launch Target Type");
-		typePage = new NewLaunchTargetTypePage(uiManager);
+		typePage = new NewRemoteConnectionTypePage();
 		setForcePreviousAndNextButtons(true);
 	}
 

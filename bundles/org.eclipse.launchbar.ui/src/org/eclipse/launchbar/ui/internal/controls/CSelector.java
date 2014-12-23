@@ -15,7 +15,6 @@ import java.util.Comparator;
 
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
-import org.eclipse.launchbar.ui.IHoverProvider;
 import org.eclipse.launchbar.ui.internal.Activator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -51,7 +50,6 @@ public abstract class CSelector extends Composite {
 
 	private IStructuredContentProvider contentProvider;
 	private ILabelProvider labelProvider;
-	private IHoverProvider hoverProvider;
 	private Comparator<Object> sorter;
 
 	private Object input;
@@ -108,21 +106,7 @@ public abstract class CSelector extends Composite {
 
 		@Override
 		public void mouseHover(MouseEvent e) {
-			if (hoverProvider != null && (popup == null || popup.isDisposed())) {
-				final Object eventSource = e.getSource();
-				if ((eventSource == currentLabel || eventSource == buttonComposite || eventSource == currentIcon)) {
-					if (hoverProvider.displayHover(selection)) {
-						buttonComposite.setToolTipText("");
-						if (currentLabel != null) {
-							currentLabel.setToolTipText("");
-						}
-						if (currentIcon != null) {
-							currentIcon.setToolTipText("");
-						}
-						toolTipWasModified = true;
-					}
-				}
-			}
+			// TODO show warning/error information
 		}
 
 		@Override
@@ -423,9 +407,6 @@ public abstract class CSelector extends Composite {
 		});
 		selIndex = -1;
 		scrollBucket = 0;
-		if (hoverProvider != null) {
-			hoverProvider.dismissHover(selection != null ? selection : null, true);
-		}
 	}
 
 	private void closePopup() {
@@ -757,14 +738,6 @@ public abstract class CSelector extends Composite {
 
 	public ILabelProvider getLabelProvider() {
 		return labelProvider;
-	}
-
-	public void setHoverProvider(IHoverProvider hoverProvider) {
-		this.hoverProvider = hoverProvider;
-	}
-
-	public IHoverProvider getHoverProvider() {
-		return hoverProvider;
 	}
 
 	public void setSorter(Comparator<Object> sorter) {

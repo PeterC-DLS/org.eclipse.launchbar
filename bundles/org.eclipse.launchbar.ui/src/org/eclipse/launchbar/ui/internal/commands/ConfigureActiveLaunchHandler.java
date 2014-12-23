@@ -23,9 +23,9 @@ import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchGroup;
 import org.eclipse.jface.window.Window;
 import org.eclipse.launchbar.core.ILaunchDescriptor;
-import org.eclipse.launchbar.core.ILaunchTarget;
 import org.eclipse.launchbar.core.internal.LaunchBarManager;
 import org.eclipse.launchbar.ui.internal.Activator;
+import org.eclipse.remote.core.api2.IRemoteConnection;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 public class ConfigureActiveLaunchHandler extends AbstractHandler {
@@ -35,7 +35,7 @@ public class ConfigureActiveLaunchHandler extends AbstractHandler {
 		try {
 			LaunchBarManager launchBarManager = Activator.getDefault().getLaunchBarUIManager().getManager();
 			ILaunchDescriptor desc = launchBarManager.getActiveLaunchDescriptor();
-			ILaunchTarget target = launchBarManager.getActiveLaunchTarget();
+			IRemoteConnection target = launchBarManager.getActiveLaunchTarget();
 			ILaunchConfiguration launchConfiguration = launchBarManager.getLaunchConfiguration(desc, target);
 			if (launchConfiguration == null)
 				return Status.OK_STATUS;

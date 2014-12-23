@@ -8,9 +8,9 @@
  * Contributors:
  *     Doug Schaefer
  *******************************************************************************/
-package org.eclipse.launchbar.ui.internal.targetsView;
+package org.eclipse.remote.ui.internal.views;
 
-import org.eclipse.launchbar.core.ILaunchTarget;
+import org.eclipse.remote.core.api2.IRemoteConnection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.PropertyPage;
 
-public class TargetPropertyPage extends PropertyPage {
+public class RemoteConnectionPropertyPage extends PropertyPage {
 
 	private Text nameText;
 	
@@ -30,7 +30,7 @@ public class TargetPropertyPage extends PropertyPage {
 		GridLayout layout = new GridLayout(2, false);
 		comp.setLayout(layout);
 
-		ILaunchTarget target = (ILaunchTarget) getElement().getAdapter(ILaunchTarget.class);
+		IRemoteConnection target = (IRemoteConnection) getElement().getAdapter(IRemoteConnection.class);
 		
 		Label nameLabel = new Label(comp, SWT.NONE);
 		nameLabel.setText("Target Name:");

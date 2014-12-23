@@ -19,7 +19,7 @@ import org.eclipse.remote.core.exception.RemoteConnectionException;
 /**
  * Interface for managing connections to remote systems.
  */
-public interface IRemoteConnectionManager {
+public interface IRemoteConnectionManager extends IRemoteService {
 	/**
 	 * The name of the connection for local services. There is only one connection for local services.
 	 * 
@@ -89,4 +89,7 @@ public interface IRemoteConnectionManager {
 	 *             if the connection could not be removed
 	 */
 	public void removeConnection(IRemoteConnection connection) throws RemoteConnectionException;
+	
+	public boolean isAutoPopulated();
+
 }

@@ -8,25 +8,17 @@
  * Contributors:
  *     Doug Schaefer
  *******************************************************************************/
-package org.eclipse.launchbar.ui.internal.targetsView;
+package org.eclipse.remote.ui.internal.views;
 
-import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.launchbar.core.ILaunchTarget;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.launchbar.ui.internal.Activator;
+import org.eclipse.remote.core.api2.IRemoteManager;
+import org.eclipse.ui.navigator.CommonNavigator;
 
-public class LaunchTargetsLabelProvider extends LabelProvider {
-
-	@Override
-	public Image getImage(Object element) {
-		return super.getImage(element);
-	}
+public class RemoteConnectionsNavigator extends CommonNavigator {
 
 	@Override
-	public String getText(Object element) {
-		if (element instanceof ILaunchTarget) {
-			return ((ILaunchTarget) element).getName();
-		}
-		return super.getText(element);
+	protected Object getInitialInput() {
+		return Activator.getService(IRemoteManager.class);
 	}
 
 }

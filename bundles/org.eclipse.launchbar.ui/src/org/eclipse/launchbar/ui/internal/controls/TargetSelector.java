@@ -13,17 +13,16 @@ package org.eclipse.launchbar.ui.internal.controls;
 import java.util.Comparator;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.wizard.WizardDialog;
-import org.eclipse.launchbar.core.ILaunchTarget;
-import org.eclipse.launchbar.ui.IHoverProvider;
-import org.eclipse.launchbar.ui.ILaunchBarUIConstants;
+import org.eclipse.launchbar.core.internal.LaunchBarManager;
 import org.eclipse.launchbar.ui.internal.Activator;
-import org.eclipse.launchbar.ui.internal.LaunchBarUIManager;
-import org.eclipse.launchbar.ui.internal.dialogs.NewLaunchTargetWizard;
+import org.eclipse.remote.core.api2.IRemoteConnection;
+import org.eclipse.remote.core.api2.IRemoteServices;
+import org.eclipse.remote.ui.api2.IRemoteServicesUI;
+import org.eclipse.remote.ui.internal.api2.dialogs.NewRemoteConnectionWizard;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -42,7 +41,7 @@ import org.eclipse.swt.widgets.Label;
 
 public class TargetSelector extends CSelector {
 
-	private final LaunchBarUIManager uiManager = Activator.getDefault().getLaunchBarUIManager();
+	private final LaunchBarManager manager = Activator.getDefault().getLaunchBarUIManager().getManager();
 
 	private static final String[] noTargets = new String[] { "---" };
 
@@ -61,7 +60,7 @@ public class TargetSelector extends CSelector {
 			@Override
 			public Object[] getElements(Object inputElement) {
 				try {
-					ILaunchTarget[] targets = uiManager.getManager().getLaunchTargets();
+					IRemoteConnection[] targets = manager.getLaunchTargets();
 					if (targets.length > 0)
 						return targets;
 				} catch (CoreException e) {
@@ -74,33 +73,21 @@ public class TargetSelector extends CSelector {
 		setLabelProvider(new LabelProvider() {
 			@Override
 			public Image getImage(Object element) {
-				if (element instanceof ILaunchTarget) {
-					try {
-						ILaunchTarget target = (ILaunchTarget) element;
-						ILabelProvider labelProvider = uiManager.getLabelProvider(target);
-						if (labelProvider != null) {
-							return labelProvider.getImage(element);
-						}
-					} catch (CoreException e) {
-						Activator.log(e.getStatus());
-					}
+				if (element instanceof IRemoteConnection) {
+					IRemoteConnection connection = (IRemoteConnection) element;
+					IRemoteServices type = connection.getRemoteServices();
+					IRemoteServicesUI ui = type.getService(IRemoteServicesUI.class);
+					return ui.getIcon(connection.getConnectionStatus());
+				} else {
+					return super.getImage(element);
 				}
-				return super.getImage(element);
 			}
 
 			@Override
 			public String getText(Object element) {
-				if (element instanceof ILaunchTarget) {
-					ILaunchTarget target = (ILaunchTarget) element;
-					try {
-						ILabelProvider labelProvider = uiManager.getLabelProvider(target);
-						if (labelProvider != null) {
-							return labelProvider.getText(element);
-						}
-					} catch (CoreException e) {
-						Activator.log(e.getStatus());
-					}
-					return target.getName();
+				if (element instanceof IRemoteConnection) {
+					IRemoteConnection connection = (IRemoteConnection) element;
+					return connection.getName();
 				}
 				return super.getText(element);
 			}
@@ -113,62 +100,21 @@ public class TargetSelector extends CSelector {
 				return 0;
 			}
 		});
-
-		setHoverProvider(new IHoverProvider() {
-			@Override
-			public boolean displayHover(Object element) {
-				if (element instanceof ILaunchTarget) {
-					try {
-						ILaunchTarget target = (ILaunchTarget) element;
-						IHoverProvider hoverProvider = uiManager.getHoverProvider(target);
-						if (hoverProvider != null) {
-							return hoverProvider.displayHover(element);
-						}
-					} catch (CoreException e) {
-						Activator.log(e.getStatus());
-					}
-				}
-				return false;
-			}
-
-			@Override
-			public void dismissHover(Object element, boolean immediate) {
-				if (element instanceof ILaunchTarget) {
-					try {
-						ILaunchTarget target = (ILaunchTarget) element;
-						IHoverProvider hoverProvider = uiManager.getHoverProvider(target);
-						if (hoverProvider != null) {
-							hoverProvider.dismissHover(element, immediate);
-						}
-					} catch (CoreException e) {
-						Activator.log(e.getStatus());
-					}
-				}
-			}
-		});
 	}
 
 	@Override
 	public boolean isEditable(Object element) {
-		if (element instanceof ILaunchTarget) {
-			ILaunchTarget target = (ILaunchTarget) element;
-			return uiManager.getEditCommand(target) != null;
-		}
+		// TODO hook up connection editors
 		return false;
 	}
 
 	@Override
 	public void handleEdit(Object element) {
-		if (element instanceof ILaunchTarget) {
-			ILaunchTarget target = (ILaunchTarget) element;
-			String commandId = uiManager.getEditCommand(target);
-			Activator.runCommand(commandId, ILaunchBarUIConstants.TARGET_NAME, target.getName());
-		}
 	}
 
 	@Override
 	public boolean hasActionArea() {
-		return !uiManager.getNewTargetWizards().isEmpty();
+		return true;
 	}
 
 	@Override
@@ -202,7 +148,7 @@ public class TargetSelector extends CSelector {
 
 		MouseListener mouseListener = new MouseAdapter() {
 			public void mouseUp(org.eclipse.swt.events.MouseEvent e) {
-				NewLaunchTargetWizard wizard = new NewLaunchTargetWizard(uiManager);
+				NewRemoteConnectionWizard wizard = new NewRemoteConnectionWizard();
 				WizardDialog dialog = new WizardDialog(getShell(), wizard);
 				dialog.open();
 			}
@@ -230,10 +176,10 @@ public class TargetSelector extends CSelector {
 	@Override
 	protected void fireSelectionChanged() {
 		Object selection = getSelection();
-		if (selection instanceof ILaunchTarget) {
-			ILaunchTarget target = (ILaunchTarget) selection;
+		if (selection instanceof IRemoteConnection) {
+			IRemoteConnection target = (IRemoteConnection) selection;
 			try {
-				uiManager.getManager().setActiveLaunchTarget(target);
+				manager.setActiveLaunchTarget(target);
 			} catch (CoreException e) {
 				Activator.log(e.getStatus());
 			}

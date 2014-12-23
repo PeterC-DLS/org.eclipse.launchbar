@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.launchbar.core.ILaunchBarManager;
 import org.eclipse.launchbar.core.internal.LaunchBarManager;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Event;
@@ -91,8 +92,7 @@ public class Activator extends AbstractUIPlugin {
 
 	public LaunchBarUIManager getLaunchBarUIManager() {
 		if (launchBarUIManager == null) {
-			LaunchBarManager manager = org.eclipse.launchbar.core.internal.Activator.getDefault().getLaunchBarManager();
-			launchBarUIManager = new LaunchBarUIManager(manager);
+			launchBarUIManager = new LaunchBarUIManager();
 		}
 		return launchBarUIManager;
 	}
@@ -152,4 +152,5 @@ public class Activator extends AbstractUIPlugin {
 		ServiceReference<T> ref = context.getServiceReference(cls);
 		return ref != null ? context.getService(ref) : null;
 	}
+
 }
