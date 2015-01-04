@@ -13,7 +13,6 @@ import org.eclipse.remote.core.IRemoteProcessBuilder;
 import org.eclipse.remote.core.api2.IRemoteCommandShellService;
 import org.eclipse.remote.core.api2.IRemoteConnection;
 import org.eclipse.remote.core.api2.IRemoteConnectionChangeListener;
-import org.eclipse.remote.core.api2.IRemoteConnectionService;
 import org.eclipse.remote.core.api2.IRemoteConnectionWorkingCopy;
 import org.eclipse.remote.core.api2.IRemoteFileService;
 import org.eclipse.remote.core.api2.IRemotePortForwardService;
@@ -21,24 +20,27 @@ import org.eclipse.remote.core.api2.IRemoteProcessService;
 import org.eclipse.remote.core.api2.IRemoteServices;
 import org.eclipse.remote.core.exception.RemoteConnectionException;
 
-public class RemoteConnection extends PlatformObject implements IRemoteConnection,
+public class RemoteConnectionProxy extends PlatformObject implements IRemoteConnection,
 IRemoteCommandShellService, IRemoteProcessService, IRemotePortForwardService {
 
+	final RemoteServicesProxy services;
 	final org.eclipse.remote.core.IRemoteConnection connection;
 
-	public RemoteConnection(org.eclipse.remote.core.IRemoteConnection connection) {
+	public RemoteConnectionProxy(RemoteServicesProxy services,
+			org.eclipse.remote.core.IRemoteConnection connection) {
+		this.services = services;
 		this.connection = connection;
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T extends IRemoteConnectionService> T getService(Class<T> service) {
+	public <T extends Service> T getService(Class<T> service) {
 		if (IRemoteCommandShellService.class.equals(service)
 				|| IRemoteProcessService.class.equals(service)
 				|| IRemotePortForwardService.class.equals(service)) {
 			return (T)this;
 		} else if (IRemoteFileService.class.equals(service)) {
-			return (T)new RemoteFileService(this, connection.getFileManager());
+			return (T)new RemoteFileServiceProxy(this, connection.getFileManager());
 		} else {
 			return (T)getAdapter(service);
 		}
@@ -51,7 +53,7 @@ IRemoteCommandShellService, IRemoteProcessService, IRemotePortForwardService {
 
 	@Override
 	public IRemoteServices getRemoteServices() {
-		return new RemoteServices(connection.getRemoteServices());
+		return services;
 	}
 
 	@Override
@@ -69,6 +71,11 @@ IRemoteCommandShellService, IRemoteProcessService, IRemotePortForwardService {
 		return connection.getProperty(key);
 	}
 
+	@Override
+	public boolean isOpen() {
+		return connection.isOpen();
+	}
+	
 	@Override
 	public IStatus getConnectionStatus() {
 		if (connection.isOpen()) {
@@ -95,18 +102,13 @@ IRemoteCommandShellService, IRemoteProcessService, IRemotePortForwardService {
 	}
 
 	@Override
-	public int compareTo(IRemoteConnection o) {
-		return connection.compareTo(((RemoteConnection) o).connection);
-	}
-
-	@Override
 	public void addConnectionChangeListener(IRemoteConnectionChangeListener listener) {
-		connection.addConnectionChangeListener(new RemoteConnectionChangeListener(listener));
+		connection.addConnectionChangeListener(new RemoteConnectionChangeListenerProxy(services, listener));
 	}
 
 	@Override
 	public void removeConnectionChangeListener(IRemoteConnectionChangeListener listener) {
-		connection.removeConnectionChangeListener(new RemoteConnectionChangeListener(listener));
+		connection.removeConnectionChangeListener(new RemoteConnectionChangeListenerProxy(services, listener));
 	}
 
 	@Override

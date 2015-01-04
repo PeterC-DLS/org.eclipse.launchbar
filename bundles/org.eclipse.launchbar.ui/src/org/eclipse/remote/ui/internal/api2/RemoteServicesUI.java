@@ -3,7 +3,7 @@ package org.eclipse.remote.ui.internal.api2;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.remote.core.api2.IRemoteServices;
-import org.eclipse.remote.core.internal.api2.proxy.RemoteServices;
+import org.eclipse.remote.core.internal.api2.proxy.RemoteServicesProxy;
 import org.eclipse.remote.ui.IRemoteUIConnectionManager;
 import org.eclipse.remote.ui.IRemoteUIConnectionWizard;
 import org.eclipse.remote.ui.IRemoteUIServices;
@@ -13,9 +13,9 @@ import org.eclipse.swt.graphics.Image;
 
 public class RemoteServicesUI implements IRemoteServicesUI {
 
-	private final RemoteServices remoteServices;
+	private final RemoteServicesProxy remoteServices;
 	
-	public RemoteServicesUI(RemoteServices remoteServices) {
+	public RemoteServicesUI(RemoteServicesProxy remoteServices) {
 		this.remoteServices = remoteServices;
 	}
 	

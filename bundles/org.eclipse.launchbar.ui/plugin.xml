@@ -84,7 +84,7 @@
    <extension
          point="org.eclipse.core.runtime.adapters">
       <factory
-            adaptableType="org.eclipse.remote.core.internal.api2.proxy.RemoteServices"
+            adaptableType="org.eclipse.remote.core.internal.api2.proxy.RemoteServicesProxy"
             class="org.eclipse.remote.ui.internal.api2.RemoteServicesUIFactory">
          <adapter
                type="org.eclipse.remote.ui.api2.IRemoteServicesUI">

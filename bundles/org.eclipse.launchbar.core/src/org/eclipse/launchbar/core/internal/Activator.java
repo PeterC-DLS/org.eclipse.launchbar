@@ -16,8 +16,10 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.launchbar.core.ILaunchBarManager;
+import org.eclipse.remote.core.api2.IRemoteLaunchConfigManagerService;
 import org.eclipse.remote.core.api2.IRemoteManager;
-import org.eclipse.remote.core.internal.api2.proxy.RemoteManager;
+import org.eclipse.remote.core.internal.api2.RemoteLaunchConfigManagerService;
+import org.eclipse.remote.core.internal.api2.RemoteManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -26,25 +28,24 @@ public class Activator extends Plugin {
 	public static final String PLUGIN_ID = "org.eclipse.launchbar.core";
 	private static Activator plugin;
 	private LaunchBarManager launchBarManager;
-	private IRemoteManager remoteManager;
 
 	public void start(BundleContext bundleContext) throws Exception {
 		super.start(bundleContext);
 		plugin = this;
 
+		// TODO move these to the o.e.remote.core plugin
+		bundleContext.registerService(IRemoteManager.class, new RemoteManager(), null);
+		bundleContext.registerService(IRemoteLaunchConfigManagerService.class, new RemoteLaunchConfigManagerService(), null);
+
 		launchBarManager = new LaunchBarManager();
 		bundleContext.registerService(ILaunchBarManager.class, launchBarManager, null);
-
-		remoteManager = new RemoteManager();
-		bundleContext.registerService(IRemoteManager.class, remoteManager, null);
 	}
 
 	public void stop(BundleContext bundleContext) throws Exception {
-		super.stop(bundleContext);
-		plugin = null;
 		launchBarManager.dispose();
 		launchBarManager = null;
-		remoteManager = null;
+		super.stop(bundleContext);
+		plugin = null;
 	}
 
 	public static Activator getDefault() {
@@ -62,7 +63,7 @@ public class Activator extends Plugin {
 			System.err.println(status.getMessage());
 	}
 
-	public static void log(Exception exception) {
+	public static void log(Throwable exception) {
 		log(new Status(IStatus.ERROR, PLUGIN_ID, exception.getLocalizedMessage(), exception));
 	}
 

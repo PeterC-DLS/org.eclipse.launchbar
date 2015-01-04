@@ -2,10 +2,10 @@ package org.eclipse.remote.ui.api2;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.wizard.IWizard;
-import org.eclipse.remote.core.api2.IRemoteService;
+import org.eclipse.remote.core.api2.IRemoteServices;
 import org.eclipse.swt.graphics.Image;
 
-public interface IRemoteServicesUI extends IRemoteService {
+public interface IRemoteServicesUI extends IRemoteServices.Service {
 
 	/**
 	 * Returns the standard icon for this remote services.

@@ -70,12 +70,4 @@ public interface IRemoteManager {
 	 */
 	Collection<IRemoteConnection> getAllRemoteConnections();
 
-	/**
-	 * Return the service that implements the specified service interface.
-	 * 
-	 * @param service interface
-	 * @return service
-	 */
-	<T extends IRemoteManagerService> T getService(Class<T> service);
-
 }

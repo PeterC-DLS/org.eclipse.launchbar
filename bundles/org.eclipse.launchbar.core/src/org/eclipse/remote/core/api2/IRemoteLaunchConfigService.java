@@ -16,7 +16,7 @@ import org.eclipse.debug.core.ILaunchConfigurationType;
  * Service that supports setting up launch configurations for
  * launching over the remote connection.
  */
-public interface IRemoteLaunchConfigService extends IRemoteService {
+public interface IRemoteLaunchConfigService extends IRemoteServices.Service {
 
 	/**
 	 * Does this remote service support launching on this launch config type.

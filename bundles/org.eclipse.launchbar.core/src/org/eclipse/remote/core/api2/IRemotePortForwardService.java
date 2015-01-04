@@ -3,7 +3,7 @@ package org.eclipse.remote.core.api2;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.remote.core.exception.RemoteConnectionException;
 
-public interface IRemotePortForwardService extends IRemoteConnectionService {
+public interface IRemotePortForwardService extends IRemoteConnection.Service {
 
 	/**
 	 * Forward local port localPort to remote port fwdPort on remote machine fwdAddress. If this IRemoteConnection is not to

@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.eclipse.remote.core.IRemoteProcessBuilder;
 
-public interface IRemoteProcessService extends IRemoteConnectionService {
+public interface IRemoteProcessService extends IRemoteConnection.Service {
 
 	/**
 	 * Get a process builder for creating remote processes

@@ -35,8 +35,7 @@ public class DeleteConnectionHandler extends AbstractHandler {
 				if (obj instanceof IRemoteConnection) {
 					IRemoteConnection connection = (IRemoteConnection)obj;
 					IRemoteServices services = connection.getRemoteServices();
-					IRemoteConnectionManager manager = services.getService(IRemoteConnectionManager.class);
-					if (!manager.isAutoPopulated()) {
+					if (!services.isAutoPopulated()) {
 						connections.add(connection);
 					}
 				}

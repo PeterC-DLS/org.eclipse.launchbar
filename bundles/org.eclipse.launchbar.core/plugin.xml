@@ -2,6 +2,7 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension-point id="launchBarContributions" name="Launch Bar Contributions" schema="schema/launchBarContributions.exsd"/>
+   <extension-point id="remoteServices2" name="Remote Services" schema="schema/remoteServices2.exsd"/>
    <extension
          point="org.eclipse.launchbar.core.launchBarContributions">
       <targetType

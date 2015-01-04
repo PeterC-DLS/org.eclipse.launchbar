@@ -8,12 +8,12 @@ import org.eclipse.remote.core.IRemoteFileManager;
 import org.eclipse.remote.core.api2.IRemoteConnection;
 import org.eclipse.remote.core.api2.IRemoteFileService;
 
-public class RemoteFileService implements IRemoteFileService {
+public class RemoteFileServiceProxy implements IRemoteFileService {
 
 	private final IRemoteConnection connection;
 	final IRemoteFileManager manager;
 	
-	public RemoteFileService(IRemoteConnection connection, IRemoteFileManager manager) {
+	public RemoteFileServiceProxy(IRemoteConnection connection, IRemoteFileManager manager) {
 		this.connection = connection;
 		this.manager = manager;
 	}

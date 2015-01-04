@@ -10,20 +10,52 @@
  *******************************************************************************/
 package org.eclipse.remote.core.api2;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.remote.core.internal.api2.proxy.RemoteServices;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.remote.core.internal.api2.proxy.RemoteServicesProxy;
 
 /**
  * Abstraction of a remote services provider. Clients obtain this interface using one of the static methods in
- * {@link RemoteServices}. The methods on this interface can then be used to access the full range of remote services provided.
+ * {@link RemoteServicesProxy}. The methods on this interface can then be used to access the full range of remote services provided.
+ * 
+ * @noimplement register services to provide features for this remote type
  */
-public interface IRemoteServices extends IRemoteServicesDescriptor {
-	public static final int CAPABILITY_ADD_CONNECTIONS = 0x01;
-	public static final int CAPABILITY_EDIT_CONNECTIONS = 0x02;
-	public static final int CAPABILITY_REMOVE_CONNECTIONS = 0x04;
-	public static final int CAPABILITY_SUPPORTS_TCP_PORT_FORWARDING = 0x08;
-	public static final int CAPABILITY_SUPPORTS_X11_FORWARDING = 0x10;
-	public static final int CAPABILITY_SUPPORTS_COMMAND_SHELL = 0x20;
+public interface IRemoteServices extends IAdaptable {
+
+	/**
+	 * Get the remote manager, the root object of the remote framework
+	 * 
+	 * @return remote manager
+	 */
+	IRemoteManager getManager();
+
+	/**
+	 * Get unique ID of this service. Can be used as a lookup key.
+	 * 
+	 * @return unique ID
+	 */
+	String getId();
+
+	/**
+	 * Get display name of this service.
+	 * 
+	 * @return display name
+	 */
+	String getName();
+
+	/**
+	 * Get the EFS scheme provided by this service.
+	 * 
+	 * @return display name
+	 */
+	String getScheme();
+
+	interface Service {
+		IRemoteServices getRemoteServices();
+		
+		interface Factory {
+			Service getService(IRemoteServices remoteServices);
+		}
+	}
 
 	/**
 	 * Return one of the remote services that this provider provides.
@@ -31,20 +63,23 @@ public interface IRemoteServices extends IRemoteServicesDescriptor {
 	 * @param service interface
 	 * @return the service
 	 */
-	public <T extends IRemoteService> T getService(Class<T> service);
+	<T extends Service> T getService(Class<T> service);
 
 	/**
-	 * Initialize the remote service. Clients should not call this method (it is called internally.)
+	 * Return a remote service associated with the connection.
 	 * 
-	 * @return true if the initialization was successful, false otherwise
-	 * @since 7.0
+	 * @param connection
+	 * @param service
+	 * @return the connection service
 	 */
-	public boolean initialize(IProgressMonitor monitor);
+	<T extends IRemoteConnection.Service> T getService(IRemoteConnection connection, Class<T> service);
 
 	/**
-	 * Gets the capabilities of the remote service.
+	 * Are connections with this service auto populated. If so, the connection manager
+	 * can not be used to add or remove connections.
 	 * 
-	 * @return bit-wise or of capability flag constants
+	 * @return isAutoPopulated
 	 */
-	public int getCapabilities();
+	boolean isAutoPopulated();
+
 }

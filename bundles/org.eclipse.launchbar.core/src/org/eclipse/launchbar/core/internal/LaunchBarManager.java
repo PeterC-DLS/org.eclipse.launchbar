@@ -829,7 +829,7 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 
 		// set the active target as active
 		ILaunchConfiguration launchConfig = getLaunchConfiguration(activeLaunchDesc, activeLaunchTarget);
-		IRemoteLaunchConfigManagerService lcManagerService = remoteManager.getService(IRemoteLaunchConfigManagerService.class);
+		IRemoteLaunchConfigManagerService lcManagerService = Activator.getService(IRemoteLaunchConfigManagerService.class);
 		lcManagerService.setActiveRemote(launchConfig, activeLaunchTarget);
 
 		// save the active setting

@@ -12,6 +12,7 @@ package org.eclipse.remote.core.api2;
 
 import java.util.Map;
 
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.remote.core.exception.RemoteConnectionException;
@@ -21,30 +22,40 @@ import org.eclipse.remote.core.exception.RemoteConnectionException;
  * then call the {{@link #open(IProgressMonitor)} method. Once the connection is completed, call the {@link #close()} method to
  * terminate the connection.
  */
-public interface IRemoteConnection extends Comparable<IRemoteConnection> {
+public interface IRemoteConnection extends IAdaptable {
 
 	// Standard properties
-	public final static String OS_NAME_PROPERTY = "os.name"; //$NON-NLS-1$
-	public final static String OS_VERSION_PROPERTY = "os.version"; //$NON-NLS-1$
-	public final static String OS_ARCH_PROPERTY = "os.arch"; //$NON-NLS-1$
-	public final static String FILE_SEPARATOR_PROPERTY = "file.separator"; //$NON-NLS-1$
-	public final static String PATH_SEPARATOR_PROPERTY = "path.separator"; //$NON-NLS-1$
-	public final static String LINE_SEPARATOR_PROPERTY = "line.separator"; //$NON-NLS-1$
-	public final static String USER_HOME_PROPERTY = "user.home"; //$NON-NLS-1$
+	final static String OS_NAME_PROPERTY = "os.name"; //$NON-NLS-1$
+	final static String OS_VERSION_PROPERTY = "os.version"; //$NON-NLS-1$
+	final static String OS_ARCH_PROPERTY = "os.arch"; //$NON-NLS-1$
+	final static String FILE_SEPARATOR_PROPERTY = "file.separator"; //$NON-NLS-1$
+	final static String PATH_SEPARATOR_PROPERTY = "path.separator"; //$NON-NLS-1$
+	final static String LINE_SEPARATOR_PROPERTY = "line.separator"; //$NON-NLS-1$
+	final static String USER_HOME_PROPERTY = "user.home"; //$NON-NLS-1$
 
 	// Common attributes
-	public static final String USERNAME = "remote.username";
-	public static final String PASSWORD = "remote.password"; // stored in secure preference store
-	public static final String ADDRESS = "remote.address";
-	public static final String PORT = "remote.port";
+	static final String USERNAME = "remote.username";
+	static final String PASSWORD = "remote.password"; // stored in secure preference store
+	static final String ADDRESS = "remote.address";
+	static final String PORT = "remote.port";
 
 	/**
 	 * Get unique name for this connection.
 	 * 
 	 * @return connection name
 	 */
-	public String getName();
+	String getName();
 
+	/**
+	 * Is the connection open ready to accept traffic.
+	 * 
+	 * Usually the connection is opened if the connection status is not CANCEL or ERROR,
+	 * but different connection types may decide differently.
+	 * 
+	 * @return is opened
+	 */
+	boolean isOpen();
+	
 	/**
 	 * Return the connection status.
 	 * If it's OK, the connection is open with no issues.
@@ -55,7 +66,7 @@ public interface IRemoteConnection extends Comparable<IRemoteConnection> {
 	 * 
 	 * @return true if connection is open.
 	 */
-	public IStatus getConnectionStatus();
+	IStatus getConnectionStatus();
 
 	/**
 	 * Open the connection. Must be called before the connection can be used.
@@ -66,12 +77,12 @@ public interface IRemoteConnection extends Comparable<IRemoteConnection> {
 	 *            be cancelled.
 	 * @throws RemoteConnectionException
 	 */
-	public void open(IProgressMonitor monitor) throws RemoteConnectionException;
+	void open(IProgressMonitor monitor) throws RemoteConnectionException;
 
 	/**
 	 * Close the connection. Must be called to terminate the connection.
 	 */
-	public void close();
+	void close();
 
 	/**
 	 * Gets the remote system property indicated by the specified key. The connection must be open prior to calling this method.
@@ -92,7 +103,7 @@ public interface IRemoteConnection extends Comparable<IRemoteConnection> {
 	 *            the name of the property
 	 * @return the string value of the property, or null if no property has that key
 	 */
-	public String getProperty(String key);
+	String getProperty(String key);
 
 	/**
 	 * Get the implementation specific attributes for the connection.
@@ -101,22 +112,33 @@ public interface IRemoteConnection extends Comparable<IRemoteConnection> {
 	 * 
 	 * @return a map containing the connection attribute keys and values
 	 */
-	public Map<String, String> getAttributes();
+	Map<String, String> getAttributes();
 
 	/**
 	 * Get the remote services provider for this connection.
 	 * 
 	 * @return remote services provider
 	 */
-	public IRemoteServices getRemoteServices();
+	IRemoteServices getRemoteServices();
 
+	/**
+	 * A service extension for this connection.
+	 */
+	interface Service {
+		IRemoteConnection getConnection();
+		
+		interface Factory {
+			Service getService(IRemoteConnection connection);
+		}
+	}
+	
 	/**
 	 * Return the specified connection service.
 	 *  
 	 * @param service interface
 	 * @return service
 	 */
-	public <T extends IRemoteConnectionService> T getService(Class<T> service);
+	<T extends Service> T getService(Class<T> service);
 
 	/**
 	 * Return a working copy of the connection that will allow changes to the name and attributes
@@ -124,21 +146,21 @@ public interface IRemoteConnection extends Comparable<IRemoteConnection> {
 	 * 
 	 * @return working copy
 	 */
-	public IRemoteConnectionWorkingCopy getWorkingCopy();
+	IRemoteConnectionWorkingCopy getWorkingCopy();
 
 	/**
 	 * Register a listener that will be notified when this connection's status changes.
 	 * 
 	 * @param listener
 	 */
-	public void addConnectionChangeListener(IRemoteConnectionChangeListener listener);
+	void addConnectionChangeListener(IRemoteConnectionChangeListener listener);
 
 	/**
 	 * Remove a listener that will be notified when this connection's status changes.
 	 * 
 	 * @param listener
 	 */
-	public void removeConnectionChangeListener(IRemoteConnectionChangeListener listener);
+	void removeConnectionChangeListener(IRemoteConnectionChangeListener listener);
 
 	/**
 	 * Notify all listeners when this connection's status changes. See {{@link IRemoteConnectionChangeEvent} for a list of event
@@ -147,6 +169,6 @@ public interface IRemoteConnection extends Comparable<IRemoteConnection> {
 	 * @param event
 	 *            event type indicating the nature of the event
 	 */
-	public void fireConnectionChangeEvent(int type);
+	void fireConnectionChangeEvent(int type);
 
 }

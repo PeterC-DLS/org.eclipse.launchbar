@@ -52,4 +52,10 @@ public interface IRemoteConnectionWorkingCopy extends IRemoteConnection {
 	 */
 	public IRemoteConnection save();
 
+	public interface WorkingCopyService {
+		IRemoteConnectionWorkingCopy getWorkingCopy();
+	}
+	
+	<T extends WorkingCopyService> T getWorkingCopyService(Class<T> service);
+
 }

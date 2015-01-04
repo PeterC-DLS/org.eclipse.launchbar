@@ -35,24 +35,29 @@ public class NewRemoteConnectionTypePage extends WizardPage {
 		table.setLayoutData(data);
 
 		setPageComplete(false);
-		
+
 		IRemoteManager remoteManager = Activator.getService(IRemoteManager.class);
 		for (IRemoteServices remoteServices : remoteManager.getAllRemoteServices()) {
+			if (remoteServices.isAutoPopulated())
+				continue;
 			IRemoteServicesUI ui = remoteServices.getService(IRemoteServicesUI.class);
-			if (ui != null) {
-				IWizard wizard = ui.getNewWizard();
-				if (wizard != null) {
-					TableItem item = new TableItem(table, SWT.NONE);
-					item.setText(remoteServices.getName());
-					Image icon = ui.getIcon();
-					if (icon != null) {
-						item.setImage(icon);
-					}
-					item.setData(wizard);
-				}
-				table.select(0);
-				setPageComplete(true);
+			if (ui == null)
+				continue;
+			IWizard wizard = ui.getNewWizard();
+			if (wizard == null)
+				continue;
+
+			TableItem item = new TableItem(table, SWT.NONE);
+			item.setText(remoteServices.getName());
+			item.setData(wizard);
+			Image icon = ui.getIcon();
+			if (icon != null) {
+				item.setImage(icon);
 			}
+
+			// TODO select the last selected entry
+			table.select(0);
+			setPageComplete(true);
 		}
 
 		setControl(comp);

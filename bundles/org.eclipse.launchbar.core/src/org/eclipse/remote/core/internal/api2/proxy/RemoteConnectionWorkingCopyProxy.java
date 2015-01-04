@@ -4,27 +4,28 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.remote.core.api2.IRemoteConnection;
 import org.eclipse.remote.core.api2.IRemoteConnectionChangeListener;
-import org.eclipse.remote.core.api2.IRemoteConnectionService;
 import org.eclipse.remote.core.api2.IRemoteConnectionWorkingCopy;
 import org.eclipse.remote.core.api2.IRemoteServices;
 import org.eclipse.remote.core.exception.RemoteConnectionException;
 
-public class RemoteConnectionWorkingCopy implements IRemoteConnectionWorkingCopy {
+public class RemoteConnectionWorkingCopyProxy extends PlatformObject implements IRemoteConnectionWorkingCopy {
 
-	final IRemoteConnection original;
+	final RemoteConnectionProxy original;
 	final org.eclipse.remote.core.IRemoteConnectionWorkingCopy workingCopy;
 
-	public RemoteConnectionWorkingCopy(RemoteConnection original) {
+	public RemoteConnectionWorkingCopyProxy(RemoteConnectionProxy original) {
 		this.original = original;
 		this.workingCopy = original.connection.getWorkingCopy();
 	}
 
-	public RemoteConnectionWorkingCopy(org.eclipse.remote.core.IRemoteConnectionWorkingCopy workingCopy) {
+	public RemoteConnectionWorkingCopyProxy(RemoteServicesProxy services,
+			org.eclipse.remote.core.IRemoteConnectionWorkingCopy workingCopy) {
 		this.workingCopy = workingCopy;
-		this.original = new RemoteConnection(workingCopy.getOriginal());
+		this.original = new RemoteConnectionProxy(services, workingCopy.getOriginal());
 	}
 
 	@Override
@@ -32,6 +33,11 @@ public class RemoteConnectionWorkingCopy implements IRemoteConnectionWorkingCopy
 		return workingCopy.getName();
 	}
 
+	@Override
+	public boolean isOpen() {
+		return workingCopy.isOpen();
+	}
+	
 	@Override
 	public IStatus getConnectionStatus() {
 		if (workingCopy.isOpen()) {
@@ -68,8 +74,14 @@ public class RemoteConnectionWorkingCopy implements IRemoteConnectionWorkingCopy
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends IRemoteConnectionService> T getService(Class<T> service) {
+	public <T extends Service> T getService(Class<T> service) {
 		return (T)original.getRemoteServices();
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T extends WorkingCopyService> T getWorkingCopyService(Class<T> service) {
+		return (T)getAdapter(service);
 	}
 
 	@Override
@@ -79,22 +91,19 @@ public class RemoteConnectionWorkingCopy implements IRemoteConnectionWorkingCopy
 
 	@Override
 	public void addConnectionChangeListener(IRemoteConnectionChangeListener listener) {
-		workingCopy.addConnectionChangeListener(new RemoteConnectionChangeListener(listener));
+		workingCopy.addConnectionChangeListener(new RemoteConnectionChangeListenerProxy(
+				original.services, listener));
 	}
 
 	@Override
 	public void removeConnectionChangeListener(IRemoteConnectionChangeListener listener) {
-		workingCopy.removeConnectionChangeListener(new RemoteConnectionChangeListener(listener));
+		workingCopy.removeConnectionChangeListener(new RemoteConnectionChangeListenerProxy(
+				original.services, listener));
 	}
 
 	@Override
 	public void fireConnectionChangeEvent(int type) {
 		workingCopy.fireConnectionChangeEvent(type);
-	}
-
-	@Override
-	public int compareTo(IRemoteConnection o) {
-		return workingCopy.compareTo(((RemoteConnection) o).connection);
 	}
 
 	@Override
@@ -130,7 +139,7 @@ public class RemoteConnectionWorkingCopy implements IRemoteConnectionWorkingCopy
 
 	@Override
 	public IRemoteConnection save() {
-		return new RemoteConnection(workingCopy.save());
+		return new RemoteConnectionProxy(original.services, workingCopy.save());
 	}
 
 }

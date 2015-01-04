@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.eclipse.remote.core.IRemoteProcess;
 import org.eclipse.remote.core.IRemoteProcessBuilder;
 
-public interface IRemoteCommandShellService extends IRemoteConnectionService {
+public interface IRemoteCommandShellService extends IRemoteConnection.Service {
 
 	/**
 	 * Get a remote process that runs a command shell on the remote system. The shell will be the user's default shell on the remote

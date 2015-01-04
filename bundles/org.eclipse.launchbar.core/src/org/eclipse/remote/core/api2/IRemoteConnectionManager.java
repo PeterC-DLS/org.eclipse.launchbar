@@ -11,7 +11,8 @@
 package org.eclipse.remote.core.api2;
 
 import java.net.URI;
-import java.util.List;
+import java.util.Collection;
+import java.util.Properties;
 
 import org.eclipse.remote.core.IUserAuthenticator;
 import org.eclipse.remote.core.exception.RemoteConnectionException;
@@ -19,13 +20,7 @@ import org.eclipse.remote.core.exception.RemoteConnectionException;
 /**
  * Interface for managing connections to remote systems.
  */
-public interface IRemoteConnectionManager extends IRemoteService {
-	/**
-	 * The name of the connection for local services. There is only one connection for local services.
-	 * 
-	 * @since 7.0
-	 */
-	public static String LOCAL_CONNECTION_NAME = "Local"; //$NON-NLS-1$
+public interface IRemoteConnectionManager extends IRemoteServices.Service {
 
 	/**
 	 * Gets the remote connection corresponding to the supplied name.
@@ -52,7 +47,7 @@ public interface IRemoteConnectionManager extends IRemoteService {
 	 * 
 	 * @return connections that we know about
 	 */
-	public List<IRemoteConnection> getConnections();
+	public Collection<IRemoteConnection> getConnections();
 
 	/**
 	 * Get the user authenticator that will be used when opening connections. The user authenticator is specified using the
@@ -81,6 +76,16 @@ public interface IRemoteConnectionManager extends IRemoteService {
 	public IRemoteConnectionWorkingCopy newConnection(String name) throws RemoteConnectionException;
 
 	/**
+	 * Load a previously created connection from a set of properties.
+	 * 
+	 * @param name name of connection
+	 * @param properties properties for connection
+	 * @return loaded connection
+	 * @throws RemoteConnectionException
+	 */
+	public IRemoteConnection loadConnection(String name, Properties properties) throws RemoteConnectionException;
+	
+	/**
 	 * Remove a connection and all resources associated with it.
 	 * 
 	 * @param connection
@@ -90,6 +95,4 @@ public interface IRemoteConnectionManager extends IRemoteService {
 	 */
 	public void removeConnection(IRemoteConnection connection) throws RemoteConnectionException;
 	
-	public boolean isAutoPopulated();
-
 }
