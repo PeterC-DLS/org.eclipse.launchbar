@@ -1,9 +1,8 @@
 package org.eclipse.remote.core.internal.api2;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.launchbar.core.internal.Activator;
@@ -15,26 +14,32 @@ import org.eclipse.remote.core.api2.IRemoteServices;
 
 public class RemoteLaunchConfigManagerService implements IRemoteLaunchConfigManagerService {
 
-	private Map<String, String> configRemoteMap = new HashMap<>();
-	private Map<String, String> configTypeRemoteMap = new HashMap<>();
+	private static final String CONFIG = "launchConfigRemote";
+	private static final String TYPE = "launchConfigTypeRemote";
+	private static final String SEPERATOR = ":";
 	private IRemoteManager remoteManager = Activator.getService(IRemoteManager.class);
 
 	@Override
 	public void setActiveRemote(ILaunchConfiguration configuration, IRemoteConnection connection) {
-		String connName = connection.getRemoteServices().getId() + "/" + connection.getName();
-		configRemoteMap.put(configuration.getName(), connName);
+		String connName = connection.getRemoteServices().getId() + SEPERATOR + connection.getName();
+		IEclipsePreferences store = getPreferenceStore();
+		store.node(CONFIG).put(configuration.getName(), connName);
 		try {
-			configTypeRemoteMap.put(configuration.getType().getIdentifier(), connName);
+			store.node(TYPE).put(configuration.getType().getIdentifier(), connName);
 		} catch (CoreException e) {
 			Activator.log(e.getStatus());
 		}
+	}
+
+	private IEclipsePreferences getPreferenceStore() {
+		return InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
 	}
 
 	private IRemoteConnection getRemoteConnection(String name) {
 		if (name == null)
 			return null;
 
-		String[] parts = name.split("\\/");
+		String[] parts = name.split(SEPERATOR);
 		if (parts.length != 2)
 			return null;
 
@@ -47,12 +52,12 @@ public class RemoteLaunchConfigManagerService implements IRemoteLaunchConfigMana
 
 	@Override
 	public IRemoteConnection getActiveRemote(ILaunchConfiguration configuration) {
-		return getRemoteConnection(configRemoteMap.get(configuration.getName()));
+		return getRemoteConnection(getPreferenceStore().node(CONFIG).get(configuration.getName(), null));
 	}
 
 	@Override
 	public IRemoteConnection getLastActiveRemote(ILaunchConfigurationType configurationType) {
-		return getRemoteConnection(configTypeRemoteMap.get(configurationType));
+		return getRemoteConnection(getPreferenceStore().node(CONFIG).get(configurationType.getIdentifier(), null));
 	}
 
 }

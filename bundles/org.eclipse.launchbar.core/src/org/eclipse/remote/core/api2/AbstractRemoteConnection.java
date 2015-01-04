@@ -18,14 +18,10 @@ public abstract class AbstractRemoteConnection extends PlatformObject implements
 	private Map<Class<?>, Object> services;
 	private List<IRemoteConnectionChangeListener> listeners = new LinkedList<>();
 
-	protected AbstractRemoteConnection(IRemoteServices remoteServices, String name) {
+	protected AbstractRemoteConnection(IRemoteServices remoteServices, String name, Properties properties) {
 		this.remoteServices = remoteServices;
 		this.name = name;
 		this.attributes = new HashMap<>();
-	}
-
-	protected AbstractRemoteConnection(IRemoteServices remoteServices, String name, Properties properties) {
-		this(remoteServices, name);
 
 		// Load the attributes from the properties
 		Enumeration<?> propNames = properties.propertyNames();
@@ -34,12 +30,14 @@ public abstract class AbstractRemoteConnection extends PlatformObject implements
 			String value = properties.getProperty(propName);
 			attributes.put(propName, value);
 		}
+		fireConnectionChangeEvent(IRemoteConnectionChangeEvent.CONNECTION_ADDED);
 	}
 
 	protected AbstractRemoteConnection(AbstractRemoteConnectionWorkingCopy workingCopy) {
 		remoteServices = workingCopy.getRemoteServices();
 		name = workingCopy.getName();
 		attributes = workingCopy.getAttributes();
+		fireConnectionChangeEvent(IRemoteConnectionChangeEvent.CONNECTION_ADDED);
 	}
 
 	@Override
@@ -73,6 +71,7 @@ public abstract class AbstractRemoteConnection extends PlatformObject implements
 		for (IRemoteConnectionChangeListener listener : listeners) {
 			listener.connectionChanged(event);
 		}
+		remoteServices.getManager().fireRemoteConnectionChangeEvent(event);
 	}
 
 	@Override

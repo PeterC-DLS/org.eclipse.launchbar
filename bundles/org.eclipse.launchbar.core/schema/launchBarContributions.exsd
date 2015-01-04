@@ -102,7 +102,7 @@
                </appinfo>
             </annotation>
          </attribute>
-         <attribute name="remoteType" type="string" use="required">
+         <attribute name="targetType" type="string" use="required">
             <annotation>
                <documentation>
                   

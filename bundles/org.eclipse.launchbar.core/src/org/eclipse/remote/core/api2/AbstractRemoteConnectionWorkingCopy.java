@@ -137,14 +137,18 @@ public abstract class AbstractRemoteConnectionWorkingCopy extends PlatformObject
 	@Override
 	public void setAttribute(String key, String value) {
 		if (attributes == null) {
-			attributes = new HashMap<>(original.getAttributes());
+			if (original != null) {
+				attributes = new HashMap<>(original.getAttributes());
+			} else {
+				attributes = new HashMap<>();
+			}
 		}
 		attributes.put(key, value);
 	}
 
 	@Override
 	public IRemoteConnection save() {
-		if (name != null) {
+		if (name != null && original != null) {
 			original.fireConnectionChangeEvent(IRemoteConnectionChangeEvent.CONNECTION_RENAMED);
 		}
 		// Save the attributes
@@ -167,7 +171,6 @@ public abstract class AbstractRemoteConnectionWorkingCopy extends PlatformObject
 			Activator.log(e);
 		}
 
-		// Create the new connection object and return it
 		return doSave();
 	}
 

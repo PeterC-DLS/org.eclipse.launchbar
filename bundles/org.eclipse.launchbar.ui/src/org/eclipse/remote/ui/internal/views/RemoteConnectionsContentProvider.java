@@ -13,9 +13,11 @@ package org.eclipse.remote.ui.internal.views;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.remote.core.api2.IRemoteConnection;
+import org.eclipse.remote.core.api2.IRemoteConnectionChangeEvent;
+import org.eclipse.remote.core.api2.IRemoteConnectionChangeListener;
 import org.eclipse.remote.core.api2.IRemoteManager;
 
-public class RemoteConnectionsContentProvider implements ITreeContentProvider {
+public class RemoteConnectionsContentProvider implements ITreeContentProvider, IRemoteConnectionChangeListener {
 
 	private IRemoteManager manager;
 	private Viewer viewer;
@@ -24,10 +26,17 @@ public class RemoteConnectionsContentProvider implements ITreeContentProvider {
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		this.viewer = viewer;
 
-		// TODO tear down and add new listener
+		if (manager != null)
+			manager.removeRemoteConnectionChangeListener(this);
 		manager = (IRemoteManager)newInput;
+		manager.addRemoteConnectionChangeListener(this);
 	}
 
+	@Override
+	public void connectionChanged(IRemoteConnectionChangeEvent event) {
+		viewer.refresh();
+	}
+	
 	@Override
 	public void dispose() {
 		// TODO remove listener

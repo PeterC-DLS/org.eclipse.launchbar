@@ -36,6 +36,17 @@ public interface IRemoteConnectionChangeEvent {
 	public static final int CONNECTION_RENAMED = 1 << 3;
 
 	/**
+	 * Event indicating the connection was created. Add the listener
+	 * to the IRemoteManager to pick this up.
+	 */
+	public static final int CONNECTION_ADDED = 1 << 4;
+
+	/**
+	 * Event indication the connection is about to be removed.
+	 */
+	public static final int CONNECTION_REMOVED = 1 << 5;
+
+	/**
 	 * Get the connection that has changed.
 	 * 
 	 * @return IRemoteConnection

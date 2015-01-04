@@ -70,4 +70,10 @@ public interface IRemoteManager {
 	 */
 	Collection<IRemoteConnection> getAllRemoteConnections();
 
+	void addRemoteConnectionChangeListener(IRemoteConnectionChangeListener listener);
+
+	void removeRemoteConnectionChangeListener(IRemoteConnectionChangeListener listener);
+
+	void fireRemoteConnectionChangeEvent(IRemoteConnectionChangeEvent event);
+
 }

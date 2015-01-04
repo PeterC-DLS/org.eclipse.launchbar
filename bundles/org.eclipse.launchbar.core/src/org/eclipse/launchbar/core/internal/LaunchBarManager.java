@@ -45,6 +45,8 @@ import org.eclipse.launchbar.core.ILaunchDescriptor;
 import org.eclipse.launchbar.core.ILaunchDescriptorType;
 import org.eclipse.launchbar.core.ILaunchObjectProvider;
 import org.eclipse.remote.core.api2.IRemoteConnection;
+import org.eclipse.remote.core.api2.IRemoteConnectionChangeEvent;
+import org.eclipse.remote.core.api2.IRemoteConnectionChangeListener;
 import org.eclipse.remote.core.api2.IRemoteConnectionManager;
 import org.eclipse.remote.core.api2.IRemoteLaunchConfigManagerService;
 import org.eclipse.remote.core.api2.IRemoteManager;
@@ -55,7 +57,7 @@ import org.osgi.service.prefs.Preferences;
 /**
  * The brains of the launch bar.
  */
-public class LaunchBarManager implements ILaunchBarManager, ILaunchConfigurationListener {
+public class LaunchBarManager implements ILaunchBarManager, ILaunchConfigurationListener, IRemoteConnectionChangeListener {
 
 	// TODO make these more fine grained or break them into more focused listeners
 	public interface Listener {
@@ -209,6 +211,7 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 
 	public LaunchBarManager() {
 		remoteManager = Activator.getService(IRemoteManager.class);
+		remoteManager.addRemoteConnectionChangeListener(this);
 		
 		new Job("Launch Bar Initialization") {
 			@Override
@@ -740,6 +743,35 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 		setPreference(getPerDescriptorStore(activeLaunchDesc), PREF_ACTIVE_LAUNCH_MODE, mode.getIdentifier());
 	}
 
+	@Override
+	public void connectionChanged(IRemoteConnectionChangeEvent event) {
+		IRemoteConnection connection = event.getConnection();
+		switch (event.getType())  {
+		case IRemoteConnectionChangeEvent.CONNECTION_REMOVED:
+			if (connection.equals(activeLaunchTarget)) {
+				try {
+					setActiveLaunchTarget(null);
+				} catch (CoreException e) {
+					Activator.getDefault().getLog().log(e.getStatus());
+				}
+			}
+			break;
+		case IRemoteConnectionChangeEvent.CONNECTION_ADDED:
+			if (activeLaunchDesc != null) {
+				Map<String, LaunchConfigTypeInfo> targetMap = configTypes.get(getDescriptorTypeId(activeLaunchDesc.getType()));
+				if (targetMap != null) {
+					if (targetMap.containsKey(connection.getRemoteServices().getId())) {
+						try {
+							setActiveLaunchTarget(connection);
+						} catch (CoreException e) {
+							Activator.getDefault().getLog().log(e.getStatus());
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	public IRemoteConnection[] getLaunchTargets() throws CoreException {
 		return getLaunchTargets(activeLaunchDesc);
 	}
@@ -753,10 +785,9 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 		if (targetMap != null) {
 			List<IRemoteConnection> targetList = new ArrayList<>();
 			for (String targetTypeId : targetMap.keySet()) {
-				IRemoteServices type = remoteManager.getRemoteServices(targetTypeId);
-				if (type != null) {
-					IRemoteConnectionManager manager = type.getService(IRemoteConnectionManager.class);
-					targetList.addAll(manager.getConnections());
+				IRemoteServices remoteServices = remoteManager.getRemoteServices(targetTypeId);
+				if (remoteServices != null) {
+					targetList.addAll(remoteServices.getService(IRemoteConnectionManager.class).getConnections());
 				}
 			}
 			return targetList.toArray(new IRemoteConnection[targetList.size()]);
@@ -1005,6 +1036,8 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 	}
 
 	public void dispose() {
+		remoteManager.removeRemoteConnectionChangeListener(this);
+
 		ILaunchManager launchManager = getLaunchManager();
 		launchManager.removeLaunchConfigurationListener(this);
 		for (ILaunchObjectProvider o : objectProviders) {

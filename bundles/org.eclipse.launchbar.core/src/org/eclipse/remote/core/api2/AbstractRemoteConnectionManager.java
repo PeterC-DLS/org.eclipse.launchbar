@@ -15,7 +15,18 @@ import org.eclipse.remote.core.internal.api2.RemoteManager;
 public abstract class AbstractRemoteConnectionManager extends PlatformObject
 implements IRemoteConnectionManager, IRemoteConnectionChangeListener {
 
-	private final Map<String, IRemoteConnection> connections = new HashMap<>();
+	private final IRemoteServices remoteServices;
+	private Map<String, IRemoteConnection> connections = new HashMap<>();
+
+	protected AbstractRemoteConnectionManager(IRemoteServices remoteServices) {
+		this.remoteServices = remoteServices;
+		remoteServices.getManager().addRemoteConnectionChangeListener(this);
+	}
+
+	@Override
+	public IRemoteServices getRemoteServices() {
+		return remoteServices;
+	}
 
 	@Override
 	public IRemoteConnection getConnection(String name) {
@@ -38,13 +49,17 @@ implements IRemoteConnectionManager, IRemoteConnectionChangeListener {
 
 	@Override
 	public void removeConnection(IRemoteConnection connection) throws RemoteConnectionException {
+		connection.fireConnectionChangeEvent(IRemoteConnectionChangeEvent.CONNECTION_REMOVED);
 		connections.remove(connection.getName());
 	}
 	
 	@Override
 	public void connectionChanged(IRemoteConnectionChangeEvent event) {
-		if (event.getType() == IRemoteConnectionChangeEvent.CONNECTION_RENAMED) {
-			IRemoteConnection connection = event.getConnection(); // this is the original
+		IRemoteConnection connection = event.getConnection();
+		
+		switch (event.getType()) {
+		case IRemoteConnectionChangeEvent.CONNECTION_RENAMED:
+		case IRemoteConnectionChangeEvent.CONNECTION_REMOVED:
 			connections.remove(connection.getName());
 			// Remove the old property file
 			IPath stateLoc = Activator.getDefault().getStateLocation();
@@ -52,6 +67,11 @@ implements IRemoteConnectionManager, IRemoteConnectionChangeListener {
 			File typeDir = connsLoc.append(connection.getRemoteServices().getId()).toFile();
 			File propFile = new File(typeDir, connection.getName());
 			propFile.delete();
+			break;
+		case IRemoteConnectionChangeEvent.CONNECTION_ADDED:
+			if (!connections.containsKey(connection.getName()))
+				connections.put(connection.getName(), connection);
+			break;
 		}
 	}
 	

@@ -5,9 +5,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -22,6 +22,8 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.launchbar.core.internal.Activator;
 import org.eclipse.remote.core.RemoteServices;
 import org.eclipse.remote.core.api2.IRemoteConnection;
+import org.eclipse.remote.core.api2.IRemoteConnectionChangeEvent;
+import org.eclipse.remote.core.api2.IRemoteConnectionChangeListener;
 import org.eclipse.remote.core.api2.IRemoteConnectionManager;
 import org.eclipse.remote.core.api2.IRemoteManager;
 import org.eclipse.remote.core.api2.IRemoteServices;
@@ -38,6 +40,9 @@ public class RemoteManager implements IRemoteManager {
 	private Map<String, IRemoteServices> remoteServicesSchemeMap;
 	// Services map from id to interface name to IConfigurationElement
 	private Map<String, Map<String, IConfigurationElement>> servicesMap;
+	
+	private List<IRemoteConnectionChangeListener> listeners = new LinkedList<>();
+	private List<IRemoteConnection> connections = new LinkedList<>();
 
 	public synchronized void init() {
 		if (remoteServicesMap != null)
@@ -64,6 +69,7 @@ public class RemoteManager implements IRemoteManager {
 						if (scheme != null) {
 							remoteServicesSchemeMap.put(scheme, proxy);
 						}
+						connections.addAll(proxy.getService(IRemoteConnectionManager.class).getConnections());
 					}
 				}
 			}
@@ -119,7 +125,7 @@ public class RemoteManager implements IRemoteManager {
 							try {
 								reader = new FileReader(propsFile);
 								props.load(reader);
-								connectionManager.loadConnection(propsFile.getName(), props);
+								connections.add(connectionManager.loadConnection(propsFile.getName(), props));
 							} catch (IOException e) {
 								Activator.log(e);
 							} catch (RemoteConnectionException e) {
@@ -177,13 +183,6 @@ public class RemoteManager implements IRemoteManager {
 
 	@Override
 	public Collection<IRemoteConnection> getAllRemoteConnections() {
-		List<IRemoteConnection> connections = new ArrayList<>();
-		for (IRemoteServices services : getAllRemoteServices()) {
-			IRemoteConnectionManager manager = services.getService(IRemoteConnectionManager.class);
-			if (manager != null) {
-				connections.addAll(manager.getConnections());
-			}
-		}
 		return connections;
 	}
 
@@ -223,4 +222,38 @@ public class RemoteManager implements IRemoteManager {
 		}
 		return null;
 	}
+
+	@Override
+	public void addRemoteConnectionChangeListener(IRemoteConnectionChangeListener listener) {
+		if (!listeners.contains(listener)) {
+			listeners.add(listener);
+		}
+	}
+
+	@Override
+	public void removeRemoteConnectionChangeListener(IRemoteConnectionChangeListener listener) {
+		listeners.remove(listener);
+	}
+
+	@Override
+	public void fireRemoteConnectionChangeEvent(IRemoteConnectionChangeEvent event) {
+		IRemoteConnection connection = event.getConnection();
+		// Manage list of connections
+		switch (event.getType()) {
+		case IRemoteConnectionChangeEvent.CONNECTION_ADDED:
+			if (!connections.contains(connection)) {
+				connections.add(connection);
+			}
+			break;
+		case IRemoteConnectionChangeEvent.CONNECTION_REMOVED:
+			connections.remove(connection);
+			break;
+		}
+		
+		// pass on to the listeners
+		for (IRemoteConnectionChangeListener listener : listeners) {
+			listener.connectionChanged(event);
+		}
+	}
+
 }
