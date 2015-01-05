@@ -44,7 +44,7 @@ public class RemoteManager implements IRemoteManager {
 	private List<IRemoteConnectionChangeListener> listeners = new LinkedList<>();
 	private List<IRemoteConnection> connections = new LinkedList<>();
 
-	public synchronized void init() {
+	private synchronized void init() {
 		if (remoteServicesMap != null)
 			return;
 
@@ -125,7 +125,7 @@ public class RemoteManager implements IRemoteManager {
 							try {
 								reader = new FileReader(propsFile);
 								props.load(reader);
-								connections.add(connectionManager.loadConnection(propsFile.getName(), props));
+								connectionManager.loadConnection(propsFile.getName(), props);
 							} catch (IOException e) {
 								Activator.log(e);
 							} catch (RemoteConnectionException e) {
@@ -183,6 +183,7 @@ public class RemoteManager implements IRemoteManager {
 
 	@Override
 	public Collection<IRemoteConnection> getAllRemoteConnections() {
+		init();
 		return connections;
 	}
 

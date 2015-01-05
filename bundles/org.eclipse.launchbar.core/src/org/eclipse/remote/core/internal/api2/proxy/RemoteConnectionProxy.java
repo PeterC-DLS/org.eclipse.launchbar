@@ -91,7 +91,7 @@ IRemoteCommandShellService, IRemoteProcessService, IRemotePortForwardService {
 	}
 
 	@Override
-	public void close() {
+	public void close(IProgressMonitor monitor) throws RemoteConnectionException {
 		connection.close();
 	}
 

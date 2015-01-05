@@ -82,7 +82,7 @@ public interface IRemoteConnection extends IAdaptable {
 	/**
 	 * Close the connection. Must be called to terminate the connection.
 	 */
-	void close();
+	void close(IProgressMonitor monitor) throws RemoteConnectionException;
 
 	/**
 	 * Gets the remote system property indicated by the specified key. The connection must be open prior to calling this method.

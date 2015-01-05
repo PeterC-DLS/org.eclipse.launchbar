@@ -53,10 +53,10 @@ public class RemoteConnectionWorkingCopyProxy extends PlatformObject implements 
 	}
 
 	@Override
-	public void close() {
+	public void close(IProgressMonitor monitor) throws RemoteConnectionException {
 		workingCopy.close();
 	}
-
+	
 	@Override
 	public String getProperty(String key) {
 		return workingCopy.getProperty(key);

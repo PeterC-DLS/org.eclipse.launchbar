@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.PlatformObject;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.remote.core.internal.api2.RemoteConnectionChangeEvent;
 
 public abstract class AbstractRemoteConnection extends PlatformObject implements IRemoteConnection {
@@ -15,7 +17,7 @@ public abstract class AbstractRemoteConnection extends PlatformObject implements
 	private final IRemoteServices remoteServices;
 	private final String name;
 	private final Map<String, String> attributes;
-	private Map<Class<?>, Object> services;
+	private Map<Class<?>, Object> services = new HashMap<>();
 	private List<IRemoteConnectionChangeListener> listeners = new LinkedList<>();
 
 	protected AbstractRemoteConnection(IRemoteServices remoteServices, String name, Properties properties) {
@@ -45,6 +47,12 @@ public abstract class AbstractRemoteConnection extends PlatformObject implements
 		return name;
 	}
 
+	@Override
+	public IStatus getConnectionStatus() {
+		// default semantics
+		return isOpen() ? Status.OK_STATUS : Status.CANCEL_STATUS;
+	}
+	
 	@Override
 	public IRemoteServices getRemoteServices() {
 		return remoteServices;
@@ -87,7 +95,13 @@ public abstract class AbstractRemoteConnection extends PlatformObject implements
 			return obj;
 		}
 
-		return (T)getAdapter(service);
+		return (T)super.getAdapter(service);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
+		return getService(adapter);
 	}
 
 }

@@ -63,11 +63,11 @@ public abstract class AbstractRemoteConnectionWorkingCopy extends PlatformObject
 	}
 
 	@Override
-	public void close() {
+	public void close(IProgressMonitor monitor) throws RemoteConnectionException {
 		if (original != null)
-			original.close();
+			original.close(monitor);
 	}
-
+	
 	@Override
 	public String getProperty(String key) {
 		return original != null ? original.getProperty(key) : null;
@@ -79,7 +79,7 @@ public abstract class AbstractRemoteConnectionWorkingCopy extends PlatformObject
 			return attributes;
 		if (original != null)
 			return original.getAttributes();
-		return null;
+		return new HashMap<>();
 	}
 
 	@Override

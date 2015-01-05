@@ -34,7 +34,12 @@ public class RemoteConnectionsContentProvider implements ITreeContentProvider, I
 
 	@Override
 	public void connectionChanged(IRemoteConnectionChangeEvent event) {
-		viewer.refresh();
+		viewer.getControl().getDisplay().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				viewer.refresh();
+			}
+		});
 	}
 	
 	@Override
