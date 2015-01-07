@@ -8,6 +8,7 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.launchbar.core.internal.Activator;
@@ -42,17 +43,12 @@ public class DeleteConnectionHandler extends AbstractHandler {
 			}
 
 			// Confirm the delete
-			MessageBox confirmDialog = new MessageBox(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-					SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
 			String message = "Delete connection";
 			for (IRemoteConnection connection : connections) {
 				message += " " + connection.getName(); //$NON-NLS-1
 			}
 			message += "?"; //$NON-NLS-1
-			confirmDialog.setMessage(message);
-
-			// Make it so
-			if (confirmDialog.open() == SWT.OK) {
+			if (MessageDialog.openConfirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Delete Connection", message)) {
 				for (IRemoteConnection connection : connections) {
 					IRemoteServices services = connection.getRemoteServices();
 					IRemoteConnectionManager manager = services.getService(IRemoteConnectionManager.class);

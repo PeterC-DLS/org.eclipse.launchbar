@@ -62,11 +62,6 @@
             descriptorTypeId="org.eclipse.launchbar.core.descriptor.default"
             labelProvider="org.eclipse.launchbar.ui.internal.DefaultDescriptorLabelProvider">
       </descriptorUI>
-      <targetUI
-            labelProvider="org.eclipse.launchbar.ui.internal.LocalTargetLabelProvider"
-            targetTypeId="org.eclipse.launchbar.core.target.local"
-            name="Local Target">
-      </targetUI>
    </extension>
    <extension
          point="org.eclipse.ui.propertyPages">
@@ -76,7 +71,7 @@
             name="About">
          <enabledWhen>
             <instanceof
-                  value="org.eclipse.launchbar.core.ILaunchTarget">
+                  value="org.eclipse.remote.core.api2.IRemoteConnection">
             </instanceof>
          </enabledWhen>
       </page>
@@ -165,6 +160,12 @@
             id="org.eclipse.launchbar.ui.command.deleteConnection"
             name="Delete">
       </command>
+      <command
+            defaultHandler="org.eclipse.remote.ui.internal.terminal.OpenTerminalHandler"
+            description="Opens a terminal view for the connection"
+            id="org.eclipse.launchbar.ui.command.openTerminal"
+            name="Open Terminal">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -186,7 +187,34 @@
                label="Delete"
                style="push">
          </command>
+         <command
+               commandId="org.eclipse.launchbar.ui.command.openTerminal"
+               label="Open Terminal"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <iterate
+                        ifEmpty="false"
+                        operator="or">
+                     <adapt
+                           type="org.eclipse.remote.core.api2.IRemoteCommandShellService">
+                     </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
       </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.tm.terminal.terminalConnectors">
+      <connector
+            class="org.eclipse.remote.ui.internal.terminal.RemoteTerminalConnector"
+            hidden="false"
+            id="org.eclipse.remote.ui.terminalConnector"
+            name="Remote">
+      </connector>
    </extension>
 
 </plugin>

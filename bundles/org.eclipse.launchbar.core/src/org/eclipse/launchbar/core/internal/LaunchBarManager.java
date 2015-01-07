@@ -893,7 +893,9 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchConfiguration
 			Map<String, LaunchConfigTypeInfo> targetMap = configTypes.get(descriptorTypeId);
 			if (targetMap != null) {
 				LaunchConfigTypeInfo typeInfo = targetMap.get(targetTypeId);
-				return getLaunchManager().getLaunchConfigurationType(typeInfo.getLaunchConfigTypeId());
+				if (typeInfo != null) {
+					return getLaunchManager().getLaunchConfigurationType(typeInfo.getLaunchConfigTypeId());
+				}
 			}
 		}
 

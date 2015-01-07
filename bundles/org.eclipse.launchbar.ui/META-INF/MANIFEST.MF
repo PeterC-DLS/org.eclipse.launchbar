@@ -17,6 +17,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.workbench,
  org.eclipse.ui.ide,
  org.eclipse.ui.navigator,
+ org.eclipse.tm.terminal,
+ org.eclipse.tm.terminal.view,
  org.eclipse.remote.ui;bundle-version="[1.1.0,2.0.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
