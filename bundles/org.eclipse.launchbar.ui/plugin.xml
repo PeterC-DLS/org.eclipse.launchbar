@@ -41,7 +41,6 @@
             labelProvider="org.eclipse.launchbar.ui.DefaultDescriptorLabelProvider">
       </descriptorUI>
    </extension>
-   
 
    <extension
          point="org.eclipse.ui.newWizards">
@@ -57,7 +56,16 @@
             name="Launch Target"
             project="false">
       </wizard>
+   </extension>
 
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.eclipse.launchbar.ui.command.launchActive"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="F12">
+      </key>
    </extension>
 
 </plugin>
