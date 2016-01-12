@@ -17,6 +17,12 @@
       </command>
       <command
             categoryId="org.eclipse.launchbar.ui.category.launchBar"
+            defaultHandler="org.eclipse.launchbar.ui.internal.commands.DeployCommandHandler"
+            id="org.eclipse.launchbar.ui.command.deploy"
+            name="Deploy Workspace Plugins">
+      </command>
+      <command
+            categoryId="org.eclipse.launchbar.ui.category.launchBar"
             defaultHandler="org.eclipse.launchbar.ui.internal.commands.LaunchActiveCommandHandler"
             id="org.eclipse.launchbar.ui.command.launchActive"
             name="Launch Active Launch Configuration">

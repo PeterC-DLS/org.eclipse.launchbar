@@ -28,6 +28,7 @@ public class Activator extends AbstractUIPlugin {
 	public static final String IMG_BUTTON_BUILD = "build"; //$NON-NLS-1$
 	public static final String IMG_BUTTON_LAUNCH = "launch"; //$NON-NLS-1$
 	public static final String IMG_BUTTON_STOP = "stop"; //$NON-NLS-1$
+	public static final String IMG_BUTTON_DEPLOY = "deploy"; //$NON-NLS-1$
 	public static final String IMG_CONFIG_CONFIG = "config_config"; //$NON-NLS-1$
 	public static final String IMG_EDIT_COLD = "edit_cold"; //$NON-NLS-1$
 
@@ -50,6 +51,7 @@ public class Activator extends AbstractUIPlugin {
 		imageRegistry.put(IMG_BUTTON_BUILD, imageDescriptorFromPlugin(PLUGIN_ID, "icons/build_16.png")); //$NON-NLS-1$
 		imageRegistry.put(IMG_BUTTON_LAUNCH, imageDescriptorFromPlugin(PLUGIN_ID, "icons/launch_16.png")); //$NON-NLS-1$
 		imageRegistry.put(IMG_BUTTON_STOP, imageDescriptorFromPlugin(PLUGIN_ID, "icons/stop_16.png")); //$NON-NLS-1$
+		imageRegistry.put(IMG_BUTTON_DEPLOY, imageDescriptorFromPlugin(PLUGIN_ID, "icons/deploy.png")); //$NON-NLS-1$
 		imageRegistry.put(IMG_CONFIG_CONFIG, imageDescriptorFromPlugin(PLUGIN_ID, "icons/config_config.png")); //$NON-NLS-1$
 		imageRegistry.put(IMG_EDIT_COLD, imageDescriptorFromPlugin(PLUGIN_ID, "icons/edit_cold.png")); //$NON-NLS-1$
 	}

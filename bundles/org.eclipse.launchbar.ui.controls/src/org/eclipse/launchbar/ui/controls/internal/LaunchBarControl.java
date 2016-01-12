@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     Doug Schaefer
- *     Torkild U. Resheim - add preference to control target selector
+ *     Torkild U. Resheim
  *     Vincent Guignot - Ingenico - add preference to control Build button
  *******************************************************************************/
 package org.eclipse.launchbar.ui.controls.internal;
@@ -85,6 +85,8 @@ public class LaunchBarControl implements ILaunchBarListener {
 
 		createButton(toolBar, Activator.IMG_BUTTON_LAUNCH, Messages.LaunchBarControl_Launch,
 				ILaunchBarUIConstants.CMD_LAUNCH);
+		createButton(toolBar, Activator.IMG_BUTTON_DEPLOY, Messages.LaunchBarControl_Deploy,
+		        ILaunchBarUIConstants.CMD_DEPLOY);
 		createButton(toolBar, Activator.IMG_BUTTON_STOP, Messages.LaunchBarControl_Stop,
 				ILaunchBarUIConstants.CMD_STOP);
 

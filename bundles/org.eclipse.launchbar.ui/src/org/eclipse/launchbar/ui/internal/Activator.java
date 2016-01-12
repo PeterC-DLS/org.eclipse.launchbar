@@ -7,8 +7,12 @@
  *
  * Contributors:
  *     Doug Schaefer
+<<<<<<< HEAD
  *     Torkild U. Resheim - add preference to control target selector
  *     Vincent Guignot - Ingenico - add preference to control Build button     
+=======
+ *     Torkild U. Resheim
+>>>>>>> 7acff04... Add button to deploy all plug-in projects. Use styleguide palette.
  *******************************************************************************/
 package org.eclipse.launchbar.ui.internal;
 
