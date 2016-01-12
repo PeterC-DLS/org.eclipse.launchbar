@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     Doug Schaefer
- *     Torkild U. Resheim - add preference to control target selector
+ *     Torkild U. Resheim
  *******************************************************************************/
 package org.eclipse.launchbar.ui.internal;
 
@@ -45,11 +45,13 @@ public class Activator extends AbstractUIPlugin {
 	public static final String IMG_BUTTON_BUILD = "build"; //$NON-NLS-1$
 	public static final String IMG_BUTTON_LAUNCH = "launch"; //$NON-NLS-1$
 	public static final String IMG_BUTTON_STOP = "stop"; //$NON-NLS-1$
+	public static final String IMG_BUTTON_DEPLOY = "deploy"; //$NON-NLS-1$
 
 	// Command ids
 	public static final String CMD_BUILD = PLUGIN_ID + ".command.buildActive"; //$NON-NLS-1$
 	public static final String CMD_LAUNCH = PLUGIN_ID + ".command.launchActive"; //$NON-NLS-1$
 	public static final String CMD_STOP = PLUGIN_ID + ".command.stop"; //$NON-NLS-1$
+	public static final String CMD_DEPLOY = PLUGIN_ID + ".command.deploy"; //$NON-NLS-1$
 	public static final String CMD_CONFIG = PLUGIN_ID + ".command.configureActiveLaunch"; //$NON-NLS-1$
 
 	// Preference ids
@@ -77,6 +79,7 @@ public class Activator extends AbstractUIPlugin {
 		imageRegistry.put(IMG_BUTTON_BUILD, imageDescriptorFromPlugin(PLUGIN_ID, "icons/build.png")); //$NON-NLS-1$
 		imageRegistry.put(IMG_BUTTON_LAUNCH, imageDescriptorFromPlugin(PLUGIN_ID, "icons/launch.png")); //$NON-NLS-1$
 		imageRegistry.put(IMG_BUTTON_STOP, imageDescriptorFromPlugin(PLUGIN_ID, "icons/stop.png")); //$NON-NLS-1$
+		imageRegistry.put(IMG_BUTTON_DEPLOY, imageDescriptorFromPlugin(PLUGIN_ID, "icons/deploy.png")); //$NON-NLS-1$
 	}
 
 	public void stop(BundleContext context) throws Exception {

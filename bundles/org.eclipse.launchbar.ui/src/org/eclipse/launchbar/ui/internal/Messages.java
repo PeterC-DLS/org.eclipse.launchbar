@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     Doug Schaefer
- *     Torkild U. Resheim - add preference to control target selector     
+ *     Torkild U. Resheim
  *******************************************************************************/
 package org.eclipse.launchbar.ui.internal;
 
@@ -30,6 +30,7 @@ public class Messages extends NLS {
 	public static String LaunchBarControl_Build;
 	public static String LaunchBarControl_Launch;
 	public static String LaunchBarControl_Stop;
+	public static String LaunchBarControl_Deploy;
 	public static String LaunchBarListViewer_0;
 	public static String LaunchBarPreferencePage_0;
 	public static String LaunchBarPreferencePage_1;

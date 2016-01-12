@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     Doug Schaefer
- *     Torkild U. Resheim - add preference to control target selector     
+ *     Torkild U. Resheim
  *******************************************************************************/
 package org.eclipse.launchbar.ui.internal.controls;
 
@@ -65,6 +65,7 @@ public class LaunchBarControl implements Listener {
 
 		ToolBar toolBar = new ToolBar(container, SWT.FLAT);
 		createButton(toolBar, Activator.IMG_BUTTON_BUILD, Messages.LaunchBarControl_Build, Activator.CMD_BUILD);
+		createButton(toolBar, Activator.IMG_BUTTON_DEPLOY, Messages.LaunchBarControl_Deploy, Activator.CMD_DEPLOY);
 		createButton(toolBar, Activator.IMG_BUTTON_LAUNCH, Messages.LaunchBarControl_Launch, Activator.CMD_LAUNCH);
 		createButton(toolBar, Activator.IMG_BUTTON_STOP, Messages.LaunchBarControl_Stop, Activator.CMD_STOP);
 
