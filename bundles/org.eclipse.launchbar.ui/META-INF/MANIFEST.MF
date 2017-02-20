@@ -19,7 +19,10 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.jobs,
  org.eclipse.pde.build,
  org.eclipse.jface,
- org.eclipse.pde.api.tools
+ org.eclipse.pde.api.tools,
+ org.eclipse.debug.core,
+ org.eclipse.debug.ui,
+ org.eclipse.launchbar.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-Localization: plugin
