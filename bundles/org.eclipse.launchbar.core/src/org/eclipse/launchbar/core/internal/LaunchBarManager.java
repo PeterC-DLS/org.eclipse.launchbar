@@ -11,6 +11,7 @@
 package org.eclipse.launchbar.core.internal;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -525,7 +526,8 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchTargetListene
 			}
 		} else {
 			// current active target, check if it is supported
-			if (activeLaunchTarget != null && supportsTarget(activeLaunchDesc, activeLaunchTarget)) {
+			if (activeLaunchTarget != null && activeLaunchTarget != ILaunchTarget.NULL_TARGET
+					&& supportsTarget(activeLaunchDesc, activeLaunchTarget)) {
 				setActiveLaunchTarget(activeLaunchTarget);
 				return;
 			}
@@ -606,16 +608,31 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchTargetListene
 		return InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
 	}
 
+	private interface FireAction {
+		void run(ILaunchBarListener listener);
+	}
+
+	private void fireEvent(FireAction action) {
+		Collection<ILaunchBarListener> l;
+		synchronized (listeners) {
+			l = new ArrayList<>(listeners);
+		}
+
+		for (ILaunchBarListener listener : l) {
+			action.run(listener);
+		}
+	}
+
 	private void fireActiveLaunchDescriptorChanged() {
 		if (!initialized)
 			return;
-		for (ILaunchBarListener listener : listeners) {
+		fireEvent(listener -> {
 			try {
 				listener.activeLaunchDescriptorChanged(activeLaunchDesc);
 			} catch (Exception e) {
 				Activator.log(e);
 			}
-		}
+		});
 	}
 
 	@Override
@@ -672,13 +689,13 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchTargetListene
 	private void fireActiveLaunchModeChanged() {
 		if (!initialized)
 			return;
-		for (ILaunchBarListener listener : listeners) {
+		fireEvent(listener -> {
 			try {
 				listener.activeLaunchModeChanged(activeLaunchMode);
 			} catch (Exception e) {
 				Activator.log(e);
 			}
-		}
+		});
 	}
 
 	private void storeLaunchMode(ILaunchDescriptor desc, ILaunchMode mode) {
@@ -763,13 +780,13 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchTargetListene
 	private void fireActiveLaunchTargetChanged() {
 		if (!initialized)
 			return;
-		for (ILaunchBarListener listener : listeners) {
+		fireEvent(listener -> {
 			try {
 				listener.activeLaunchTargetChanged(activeLaunchTarget);
 			} catch (Exception e) {
 				Activator.log(e);
 			}
-		}
+		});
 	}
 
 	private ILaunchTarget getDefaultLaunchTarget(ILaunchDescriptor descriptor) {
@@ -822,15 +839,19 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchTargetListene
 	public void addListener(ILaunchBarListener listener) {
 		if (listener == null)
 			return;
-		if (!listeners.contains(listener)) // cannot add duplicates
-			listeners.add(listener);
+		synchronized (listeners) {
+			if (!listeners.contains(listener)) // cannot add duplicates
+				listeners.add(listener);
+		}
 	}
 
 	@Override
 	public void removeListener(ILaunchBarListener listener) {
 		if (listener == null)
 			return;
-		listeners.remove(listener);
+		synchronized (listener) {
+			listeners.remove(listener);
+		}
 	}
 
 	@Override
@@ -911,13 +932,13 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchTargetListene
 	private void fireLaunchTargetsChanged() {
 		if (!initialized)
 			return;
-		for (ILaunchBarListener listener : listeners) {
+		fireEvent(listener -> {
 			try {
 				listener.launchTargetsChanged();
 			} catch (Exception e) {
 				Activator.log(e);
 			}
-		}
+		});
 	}
 
 	@Override
@@ -926,7 +947,7 @@ public class LaunchBarManager implements ILaunchBarManager, ILaunchTargetListene
 			return;
 		fireLaunchTargetsChanged();
 		// if we added new target we probably want to use it
-		if (activeLaunchDesc == null || supportsTarget(activeLaunchDesc, target)) {
+		if (activeLaunchDesc != null && supportsTarget(activeLaunchDesc, target)) {
 			try {
 				setActiveLaunchTarget(target);
 			} catch (CoreException e) {

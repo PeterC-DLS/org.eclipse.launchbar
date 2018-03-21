@@ -31,7 +31,17 @@ public class Messages extends NLS {
 	public static String NewLaunchConfigTypePage_0;
 	public static String NewLaunchConfigTypePage_1;
 	public static String NewLaunchConfigTypePage_2;
+
+	public static String NewLaunchConfigTypePage2_Mode;
+
+	public static String NewLaunchConfigTypePage2_Type;
 	public static String NewLaunchConfigWizard_0;
+
+	public static String NewLaunchTargetWizard_Title;
+
+	public static String NewLaunchTargetWizardSelectionPage_Description;
+
+	public static String NewLaunchTargetWizardSelectionPage_Title;
 
 	public static String DescriptorMustNotBeNull;
 	public static String DescriptorMustNotBeNullDesc;
@@ -47,10 +57,20 @@ public class Messages extends NLS {
 
 	public static String LaunchBarLaunchConfigDialog_EditConfiguration;
 
+	public static String LaunchBarLaunchConfigDialog_LaunchConfigName;
+
+	public static String LaunchBarLaunchConfigDialog_LCMustHaveName;
+
+	public static String LaunchBarLaunchConfigDialog_LCNameExists;
+
+	public static String LaunchBarLaunchConfigDialog_LCNameNotValid;
+
 	public static String LaunchBarLaunchConfigDialog_SetParameters;
 
 	public static String LaunchConfigurationNotFound;
 	public static String LaunchConfigurationNotFoundDesc;
+
+	public static String LaunchTargetWizardDialog_Delete;
 	public static String NoLaunchTabsDefined;
 	public static String NoLaunchTabsDefinedDesc;
 

@@ -112,6 +112,10 @@ public class LaunchBarControl implements ILaunchBarListener {
 	}
 
 	private void createTargetSelector() {
+		if (container.isDisposed()) {
+			return;
+		}
+
 		onLabel = new Label(container, SWT.NONE);
 		onLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 		onLabel.setText(Messages.LaunchBarControl_0 + ":"); //$NON-NLS-1$
@@ -178,7 +182,11 @@ public class LaunchBarControl implements ILaunchBarListener {
 
 	@Override
 	public void activeLaunchDescriptorChanged(ILaunchDescriptor descriptor) {
-		container.getDisplay().syncExec(() -> {
+		if (container == null || container.isDisposed()) {
+			return;
+		}
+
+		container.getDisplay().asyncExec(() -> {
 			if (configSelector != null) {
 				configSelector.setDelayedSelection(descriptor, SELECTION_DELAY);
 			}
@@ -187,13 +195,19 @@ public class LaunchBarControl implements ILaunchBarListener {
 				if (targetSelector == null || targetSelector.isDisposed()) {
 					createTargetSelector();
 					syncSelectors();
-					container.getParent().layout(true);
+					if (!container.isDisposed()) {
+						Composite parent = container.getParent();
+						parent.layout(true);
+					}
 				}
 			} else {
 				if (targetSelector != null && !targetSelector.isDisposed()) {
 					onLabel.dispose();
 					targetSelector.dispose();
-					container.getParent().layout(true);
+					if (!container.isDisposed()) {
+						Composite parent = container.getParent();
+						parent.layout(true);
+					}
 				}
 			}
 		});

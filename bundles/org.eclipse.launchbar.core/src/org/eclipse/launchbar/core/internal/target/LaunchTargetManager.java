@@ -8,6 +8,7 @@
 package org.eclipse.launchbar.core.internal.target;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,7 +36,7 @@ public class LaunchTargetManager implements ILaunchTargetManager {
 	private Map<String, Map<String, ILaunchTarget>> targets;
 	private Map<String, IConfigurationElement> typeElements;
 	private Map<String, ILaunchTargetProvider> typeProviders = new LinkedHashMap<>();
-	private List<ILaunchTargetListener> listeners = new LinkedList<>();
+	private List<ILaunchTargetListener> listeners = Collections.synchronizedList(new LinkedList<>());
 
 	private static final String DELIMETER1 = ","; //$NON-NLS-1$
 	private static final String DELIMETER2 = ":"; //$NON-NLS-1$
@@ -191,21 +192,32 @@ public class LaunchTargetManager implements ILaunchTargetManager {
 			targets.put(typeId, type);
 		}
 
-		Preferences prefs = getTargetsPref();
-		String childName = typeId + DELIMETER1 + id;
-		ILaunchTarget target = new LaunchTarget(typeId, id, prefs.node(childName));
-		type.put(id, target);
 		try {
+			Preferences prefs = getTargetsPref();
+			String childName = typeId + DELIMETER1 + id;
+			Preferences child;
+			if (prefs.nodeExists(childName)) {
+				child = prefs.node(childName);
+			} else {
+				child = prefs.node(childName);
+				// set the id so we have at least one attribute to save
+				child.put("name", id); //$NON-NLS-1$
+			}
+			ILaunchTarget target = new LaunchTarget(typeId, id, child);
+			type.put(id, target);
 			prefs.flush();
+
+			synchronized (listeners) {
+				for (ILaunchTargetListener listener : listeners) {
+					listener.launchTargetAdded(target);
+				}
+			}
+
+			return target;
 		} catch (BackingStoreException e) {
 			Activator.log(e);
+			return null;
 		}
-
-		for (ILaunchTargetListener listener : listeners) {
-			listener.launchTargetAdded(target);
-		}
-
-		return target;
 	}
 
 	@Override
@@ -226,16 +238,20 @@ public class LaunchTargetManager implements ILaunchTargetManager {
 				Activator.log(e);
 			}
 			
-			for (ILaunchTargetListener listener : listeners) {
-				listener.launchTargetRemoved(target);
+			synchronized (listeners) {
+				for (ILaunchTargetListener listener : listeners) {
+					listener.launchTargetRemoved(target);
+				}
 			}
 		}
 	}
 
 	@Override
 	public void targetStatusChanged(ILaunchTarget target) {
-		for (ILaunchTargetListener listener : listeners) {
-			listener.launchTargetStatusChanged(target);
+		synchronized (listeners) {
+			for (ILaunchTargetListener listener : listeners) {
+				listener.launchTargetStatusChanged(target);
+			}
 		}
 	}
 
