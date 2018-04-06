@@ -7,6 +7,7 @@
  *
  * Contributors:
  *     Doug Schaefer
+ *     Torkild U. Resheim
  *******************************************************************************/
 package org.eclipse.launchbar.ui;
 
@@ -23,6 +24,7 @@ public interface ILaunchBarUIConstants {
 	public static final String CMD_BUILD = Activator.PLUGIN_ID + ".command.buildActive"; //$NON-NLS-1$
 	public static final String CMD_LAUNCH = Activator.PLUGIN_ID + ".command.launchActive"; //$NON-NLS-1$
 	public static final String CMD_STOP = Activator.PLUGIN_ID + ".command.stop"; //$NON-NLS-1$
+	public static final String CMD_DEPLOY = Activator.PLUGIN_ID + ".command.deploy"; //$NON-NLS-1$
 	public static final String CMD_CONFIG = Activator.PLUGIN_ID + ".command.configureActiveLaunch"; //$NON-NLS-1$
 
 }

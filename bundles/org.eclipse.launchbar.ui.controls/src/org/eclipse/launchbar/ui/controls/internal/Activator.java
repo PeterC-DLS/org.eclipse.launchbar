@@ -28,6 +28,7 @@ public class Activator extends AbstractUIPlugin {
 	public static final String IMG_BUTTON_BUILD = "build"; //$NON-NLS-1$
 	public static final String IMG_BUTTON_LAUNCH = "launch"; //$NON-NLS-1$
 	public static final String IMG_BUTTON_STOP = "stop"; //$NON-NLS-1$
+	public static final String IMG_BUTTON_DEPLOY = "deploy"; //$NON-NLS-1$
 	public static final String IMG_CONFIG_CONFIG = "config_config"; //$NON-NLS-1$
 	public static final String IMG_EDIT_COLD = "edit_cold"; //$NON-NLS-1$
 
