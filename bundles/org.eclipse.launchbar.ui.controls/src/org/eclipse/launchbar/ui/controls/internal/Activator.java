@@ -50,6 +50,7 @@ public class Activator extends AbstractUIPlugin {
 		imageRegistry.put(IMG_BUTTON_BACKGROUND, imageDescriptorFromPlugin(PLUGIN_ID, "icons/bgButton.png")); //$NON-NLS-1$
 		imageRegistry.put(IMG_BUTTON_BUILD, imageDescriptorFromPlugin(PLUGIN_ID, "icons/build_16.png")); //$NON-NLS-1$
 		imageRegistry.put(IMG_BUTTON_LAUNCH, imageDescriptorFromPlugin(PLUGIN_ID, "icons/launch_16.png")); //$NON-NLS-1$
+		imageRegistry.put(IMG_BUTTON_DEPLOY, imageDescriptorFromPlugin(PLUGIN_ID, "icons/deploy_16.png")); //$NON-NLS-1$
 		imageRegistry.put(IMG_BUTTON_STOP, imageDescriptorFromPlugin(PLUGIN_ID, "icons/stop_16.png")); //$NON-NLS-1$
 		imageRegistry.put(IMG_CONFIG_CONFIG, imageDescriptorFromPlugin(PLUGIN_ID, "icons/config_config.png")); //$NON-NLS-1$
 		imageRegistry.put(IMG_EDIT_COLD, imageDescriptorFromPlugin(PLUGIN_ID, "icons/edit_cold.png")); //$NON-NLS-1$
